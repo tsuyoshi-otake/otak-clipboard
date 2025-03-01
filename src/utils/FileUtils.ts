@@ -15,10 +15,24 @@ export class FileUtils {
     private readonly excludeDirectories = new Set([
         '.git',              // Gitディレクトリ
         'node_modules',      // Node.jsの依存関係
-        'out',              // ビルド出力
     ]);
 
-    // 一般的なバイナリファイルのマジックナンバー
+    // 常にテキストファイルとして扱う拡張子
+    private readonly textExtensions = new Set([
+        'txt', 'md', 'markdown',           // 一般的なテキスト
+        'json', 'yaml', 'yml', 'toml',     // 設定ファイル
+        'js', 'ts', 'jsx', 'tsx',          // JavaScript/TypeScript
+        'py', 'rb', 'php', 'java',         // その他のプログラミング言語
+        'css', 'scss', 'less',             // スタイルシート
+        'html', 'htm', 'xml',              // マークアップ
+        'sh', 'bash', 'zsh',               // シェルスクリプト
+        'ini', 'conf', 'cfg',              // 設定ファイル
+        'log',                             // ログファイル
+        'csv', 'tsv',                      // データファイル
+        'gitignore', 'env',                // その他の設定ファイル
+    ]);
+
+    // マジックナンバーのパターン
     private readonly MAGIC_NUMBERS = [
         { bytes: [0xFF, 0xD8, 0xFF], extension: 'jpg/jpeg' },          // JPEG
         { bytes: [0x89, 0x50, 0x4E, 0x47], extension: 'png' },         // PNG
@@ -39,8 +53,13 @@ export class FileUtils {
      */
     private async isBinaryFile(uri: vscode.Uri): Promise<boolean> {
         try {
-            // まず拡張子でチェック
+            // まず拡張子でテキストファイルかチェック
             const ext = path.extname(uri.fsPath).slice(1).toLowerCase();
+            if (this.textExtensions.has(ext)) {
+                return false;
+            }
+
+            // 明らかなバイナリ拡張子をチェック
             if (['exe', 'dll', 'so', 'dylib', 'bin', 'obj'].includes(ext)) {
                 return true;
             }

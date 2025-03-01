@@ -10,7 +10,6 @@ export class CopyCommands {
     private readonly fileUtils: FileUtils;
     private readonly limitChecker: LimitChecker;
     private readonly gitignoreUtils: GitignoreUtils;
-    private currentNotification: vscode.Disposable | undefined;
 
     constructor() {
         this.clipboardUtils = new ClipboardUtils();
@@ -30,15 +29,17 @@ export class CopyCommands {
     /**
      * 5秒後に自動で消える通知を表示
      */
-    private showTimedMessage(message: string) {
-        // 既存の通知があれば消去
-        if (this.currentNotification) {
-            this.currentNotification.dispose();
-            this.currentNotification = undefined;
-        }
-
-        // 新しい通知を表示
-        this.currentNotification = vscode.window.setStatusBarMessage(message, 5000);
+    private async showTimedMessage(message: string) {
+        await vscode.window.withProgress(
+            {
+                location: vscode.ProgressLocation.Notification,
+                title: message,
+                cancellable: false
+            },
+            async () => {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+            }
+        );
     }
 
     /**
@@ -63,7 +64,7 @@ export class CopyCommands {
         }]);
 
         const relativePath = this.getRelativePath(editor.document.fileName);
-        this.showTimedMessage(
+        await this.showTimedMessage(
             `"${relativePath}" をクリップボードにコピーしました。`
         );
     }
@@ -111,7 +112,7 @@ export class CopyCommands {
         await this.clipboardUtils.copyToClipboard(fileContents);
         const relativePaths = fileContents.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
-        this.showTimedMessage(
+        await this.showTimedMessage(
             `${fileContents.length}個のタブをコピーしました: ${fileList}`
         );
     }
@@ -138,7 +139,7 @@ export class CopyCommands {
         }]);
 
         const relativePath = this.getRelativePath(uri.fsPath);
-        this.showTimedMessage(
+        await this.showTimedMessage(
             `"${relativePath}" をクリップボードにコピーしました。`
         );
     }
@@ -182,7 +183,7 @@ export class CopyCommands {
 
         const relativePaths = files.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
-        this.showTimedMessage(
+        await this.showTimedMessage(
             `${files.length}個のファイルをコピーしました: ${fileList}`
         );
     }
