@@ -2,9 +2,12 @@
   "name": "otak-clipboard",
   "displayName": "otak-clipboard",
   "description": "This VSCode extension allows you to copy all files within a directory to your clipboard in just two clicks, or to copy only the currently opened tab. It's a convenient clipboard tool, optimized for automated workflows powered by generative AI.",
-  "version": "0.0.1",
+  "publisher": "odangoo",
+  "license": "MIT",
+  "icon": "./images/icon.png",
+  "version": "1.0.0",
   "engines": {
-    "vscode": "^1.97.0"
+    "vscode": "^1.90.0"
   },
   "categories": [
     "Other"
@@ -49,21 +52,21 @@
       "explorer/context": [
         {
           "command": "otakClipboard.copyFile",
-          "when": "resourceLangId != directory",
+          "when": "!explorerResourceIsFolder",
           "group": "navigation"
         },
         {
           "command": "otakClipboard.copyFolder",
-          "when": "resourceLangId == directory",
+          "when": "explorerResourceIsFolder",
           "group": "navigation"
         },
         {
           "command": "otakClipboard.copyFolderRecursive",
-          "when": "resourceLangId == directory",
+          "when": "explorerResourceIsFolder",
           "group": "navigation"
         }
       ],
-      "editor/context": [
+      "editor/title/context": [
         {
           "command": "otakClipboard.copyCurrentTab",
           "group": "navigation"
@@ -86,7 +89,7 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@types/vscode": "^1.97.0",
+    "@types/vscode": "^1.90.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
     "@vscode/test-cli": "^0.0.10",

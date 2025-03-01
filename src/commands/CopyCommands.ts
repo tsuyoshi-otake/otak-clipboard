@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 import { ClipboardUtils } from '../utils/ClipboardUtils';
 import { FileUtils } from '../utils/FileUtils';
 import { LimitChecker } from '../utils/LimitChecker';
@@ -15,6 +16,27 @@ export class CopyCommands {
         this.fileUtils = new FileUtils();
         this.limitChecker = new LimitChecker();
         this.gitignoreUtils = new GitignoreUtils();
+    }
+
+    /**
+     * ファイルパスをワークスペースからの相対パスに変換
+     */
+    private getRelativePath(filePath: string): string {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        return workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, filePath) : path.basename(filePath);
+    }
+
+    /**
+     * 5秒後に自動で消える通知を表示
+     */
+    private showTimedMessage(message: string) {
+        const notification = vscode.window.showInformationMessage(message);
+        notification.then(() => {
+            setTimeout(() => {
+                // 新しい空の通知を表示して古い通知を消す
+                void vscode.window.showInformationMessage('');
+            }, 5000);
+        });
     }
 
     /**
@@ -37,7 +59,10 @@ export class CopyCommands {
             content: text
         }]);
 
-        vscode.window.showInformationMessage('✅ 現在のタブをクリップボードにコピーしました。');
+        const relativePath = this.getRelativePath(editor.document.fileName);
+        this.showTimedMessage(
+            `"${relativePath}" をクリップボードにコピーしました。`
+        );
     }
 
     /**
@@ -65,7 +90,11 @@ export class CopyCommands {
         }
 
         await this.clipboardUtils.copyToClipboard(fileContents);
-        vscode.window.showInformationMessage(`✅ ${fileContents.length}個のタブをクリップボードにコピーしました。`);
+        const relativePaths = fileContents.map(f => this.getRelativePath(f.path));
+        const fileList = relativePaths.join(', ');
+        this.showTimedMessage(
+            `${fileContents.length}個のタブをコピーしました: ${fileList}`
+        );
     }
 
     /**
@@ -88,7 +117,10 @@ export class CopyCommands {
             content
         }]);
 
-        vscode.window.showInformationMessage('✅ ファイルをクリップボードにコピーしました。');
+        const relativePath = this.getRelativePath(uri.fsPath);
+        this.showTimedMessage(
+            `"${relativePath}" をクリップボードにコピーしました。`
+        );
     }
 
     /**
@@ -127,7 +159,10 @@ export class CopyCommands {
 
         await this.clipboardUtils.copyToClipboard(files);
 
-        const message = `✅ ${files.length}個のファイルをクリップボードにコピーしました。`;
-        vscode.window.showInformationMessage(message);
+        const relativePaths = files.map(f => this.getRelativePath(f.path));
+        const fileList = relativePaths.join(', ');
+        this.showTimedMessage(
+            `${files.length}個のファイルをコピーしました: ${fileList}`
+        );
     }
 }
