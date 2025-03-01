@@ -11,7 +11,7 @@
 
 For Explorer:
 
-![](images\copy-folder-contents.png)
+![](images/copy-folder-contents.png)
 
 1. Right-click a file or folder in the VS Code Explorer.
 2. Select one of the following commands from the context menu:
@@ -22,7 +22,7 @@ For Explorer:
 
 For Tabs:
 
-![](images\copy-all-opened-tabs.png)
+![](images/copy-all-opened-tabs.png)
 
 1. Right-click on the active editor tab or in the editor tab area.
 2. Select from the following commands:
@@ -96,7 +96,7 @@ otak-clipboard provides highly configurable options:
 
 ## Clipboard Output Example
 
-![](images\otak-clipboard.png)
+![](images/otak-clipboard.png)
 
 ## Notifications  
 
