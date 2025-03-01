@@ -23,6 +23,67 @@
           "type": "boolean",
           "default": true,
           "markdownDescription": "Consider `.gitignore` settings and exclude matching files from clipboard copy."
+        },
+        "otakClipboard.maxCharacters": {
+          "type": "number",
+          "default": 400000,
+          "markdownDescription": "Maximum number of characters allowed in a single copy operation."
+        },
+        "otakClipboard.maxFiles": {
+          "type": "number",
+          "default": 50,
+          "markdownDescription": "Maximum number of files allowed in a single copy operation."
+        },
+        "otakClipboard.excludeDirectories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            ".git",
+            "node_modules",
+            "out"
+          ],
+          "markdownDescription": "List of directory names to always exclude from copying."
+        },
+        "otakClipboard.knownTextExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "txt", "md", "markdown",
+            "json", "yaml", "yml", "toml",
+            "js", "ts", "jsx", "tsx",
+            "py", "rb", "php", "java",
+            "css", "scss", "less",
+            "html", "htm", "xml",
+            "sh", "bash", "zsh",
+            "ini", "conf", "cfg",
+            "log",
+            "csv", "tsv",
+            "gitignore", "env"
+          ],
+          "markdownDescription": "List of file extensions to always treat as text files."
+        },
+        "otakClipboard.knownBinaryExtensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "exe", "dll", "so", "dylib", "bin", "obj"
+          ],
+          "markdownDescription": "List of file extensions to always treat as binary files."
+        },
+        "otakClipboard.binaryDetectionRules": {
+          "type": "object",
+          "default": {
+            "nullByteCheck": true,
+            "controlCharRatio": 0.3,
+            "controlCharCheck": true
+          },
+          "markdownDescription": "Rules for binary file detection: nullByteCheck (check for null bytes), controlCharRatio (maximum ratio of control characters), controlCharCheck (enable control character checking)."
         }
       }
     },
