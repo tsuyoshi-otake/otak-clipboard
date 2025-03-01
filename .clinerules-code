@@ -1,0 +1,95 @@
+# VSCode Extension: otak-clipboard
+
+## Extension Overview
+A VSCode extension that enables users to easily copy files and their contents to the clipboard, optimized for use with generative AI tools like ChatGPT.
+
+## Core Features
+
+### Context Menu Integration
+1. Editor Context Menu
+   - Copy current tab content
+   - Copy all opened tabs content
+
+2. Explorer Context Menu
+   - Copy single file
+   - Copy folder contents (direct children only)
+   - Copy folder contents recursively
+
+### File Processing
+1. Text Formatting
+   - Markdown-based output format
+   - Syntax highlighting support based on file extension
+   - File path inclusion for context
+
+2. Protection Measures
+   - Character limit: 400,000 (approximately 100K tokens)
+   - File count limit: 50 files maximum
+   - Binary file exclusion
+   - .gitignore integration (configurable)
+
+### Project Structure
+1. Main Components:
+   - extension.ts: Entry point and command registration
+   - CopyCommands.ts: Core command implementations
+
+2. Utility Classes:
+   - ClipboardUtils: Clipboard operations and text formatting
+   - FileUtils: File system operations and directory traversal
+   - LimitChecker: Size and count limit validation
+   - GitignoreUtils: .gitignore pattern matching
+
+### Configuration
+- Configurable .gitignore integration
+- User settings in package.json
+- VSCode command contributions
+- Context menu registration
+
+### Technical Implementation
+1. TypeScript Configuration
+   - Node16 module system
+   - ES2022 target
+   - Strict type checking
+   - Source map support
+
+2. Dependencies
+   - ignore: .gitignore pattern matching
+   - VSCode extension API
+
+3. Build System
+   - npm scripts for compilation
+   - TypeScript compiler configuration
+   - ESLint integration
+
+## User Experience
+- Two-click copy operations
+- Clear success/error notifications
+- Intuitive context menu placement
+- Configurable through VSCode settings
+
+## Development Guidelines
+1. Code Organization
+   - Modular architecture
+   - Clear separation of concerns
+   - TypeScript strict mode compliance
+
+2. Error Handling
+   - User-friendly error messages
+   - Graceful failure handling
+   - Size limit enforcement
+
+3. Performance Considerations
+   - Efficient file reading
+   - Cached .gitignore rules
+   - Asynchronous operations
+
+## Testing
+1. Manual Testing
+   - Context menu functionality
+   - Copy operations
+   - Error scenarios
+   - Configuration changes
+
+2. Automated Testing (Future)
+   - Unit tests setup
+   - Integration test framework
+   - VSCode extension testing
