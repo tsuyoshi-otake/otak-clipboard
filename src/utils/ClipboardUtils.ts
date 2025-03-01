@@ -20,8 +20,18 @@ export class ClipboardUtils {
             const filePath = file.path;
             const fileExtension = path.extname(fileName).slice(1) || 'txt';
 
-            if (file.isBinary) {
-                // バイナリファイルの場合はパスのみを表示
+            if (file.isDirectory) {
+                // ディレクトリの場合
+                return [
+                    `# ${filePath}`,
+                    '',
+                    '```',
+                    file.isEmpty ? `(空のディレクトリ)` : `(ディレクトリ)`,
+                    '```',
+                    ''
+                ].join('\n');
+            } else if (file.isBinary) {
+                // バイナリファイルの場合
                 return [
                     `# ${filePath}`,
                     '',
@@ -31,7 +41,7 @@ export class ClipboardUtils {
                     ''
                 ].join('\n');
             } else {
-                // テキストファイルの場合は内容も表示
+                // テキストファイルの場合
                 return [
                     `# ${filePath}`,
                     '',
