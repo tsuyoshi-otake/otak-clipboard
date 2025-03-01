@@ -2,6 +2,12 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { GitignoreUtils } from './GitignoreUtils';
 
+export interface FileInfo {
+    path: string;
+    content?: string;
+    isBinary?: boolean;
+}
+
 export class FileUtils {
     private readonly gitignoreUtils: GitignoreUtils;
     private readonly excludeExtensions = new Set([
@@ -13,6 +19,12 @@ export class FileUtils {
         'zip', 'rar', '7z', 'tar', 'gz',
         // その他バイナリ
         'pdf', 'doc', 'docx', 'xls', 'xlsx', 'db', 'sqlite'
+    ]);
+
+    private readonly excludeDirectories = new Set([
+        '.git',              // Gitディレクトリ
+        'node_modules',      // Node.jsの依存関係
+        'out',              // ビルド出力
     ]);
 
     constructor() {
@@ -30,8 +42,8 @@ export class FileUtils {
     /**
      * ディレクトリ内のファイルを読み込む
      */
-    async readFilesInDirectory(uri: vscode.Uri, recursive: boolean): Promise<Array<{ path: string; content: string }>> {
-        const results: Array<{ path: string; content: string }> = [];
+    async readFilesInDirectory(uri: vscode.Uri, recursive: boolean): Promise<FileInfo[]> {
+        const results: FileInfo[] = [];
         const useGitignore = vscode.workspace.getConfiguration('otakClipboard').get('useGitignore', true);
         
         try {
@@ -49,7 +61,7 @@ export class FileUtils {
     private async processDirectory(
         uri: vscode.Uri,
         recursive: boolean,
-        results: Array<{ path: string; content: string }>,
+        results: FileInfo[],
         useGitignore: boolean
     ): Promise<void> {
         const entries = await vscode.workspace.fs.readDirectory(uri);
@@ -58,7 +70,11 @@ export class FileUtils {
             const fullPath = path.join(uri.fsPath, name);
             const fileUri = vscode.Uri.file(fullPath);
 
+            // 除外するディレクトリをスキップ
             if (type === vscode.FileType.Directory) {
+                if (this.excludeDirectories.has(name)) {
+                    continue;
+                }
                 if (recursive) {
                     await this.processDirectory(fileUri, recursive, results, useGitignore);
                 }
@@ -67,14 +83,19 @@ export class FileUtils {
 
             // ファイルの処理
             if (type === vscode.FileType.File) {
-                // 拡張子チェック
-                const ext = path.extname(name).slice(1).toLowerCase();
-                if (this.excludeExtensions.has(ext)) {
+                // .gitignoreチェック
+                if (useGitignore && await this.gitignoreUtils.isIgnored(fileUri)) {
                     continue;
                 }
 
-                // .gitignoreチェック
-                if (useGitignore && await this.gitignoreUtils.isIgnored(fileUri)) {
+                // 拡張子チェック
+                const ext = path.extname(name).slice(1).toLowerCase();
+                if (this.excludeExtensions.has(ext)) {
+                    // バイナリファイルの場合は、パスのみを記録
+                    results.push({
+                        path: fullPath,
+                        isBinary: true
+                    });
                     continue;
                 }
 
@@ -82,10 +103,11 @@ export class FileUtils {
                     const content = await this.readFile(fileUri);
                     results.push({
                         path: fullPath,
-                        content: content
+                        content: content,
+                        isBinary: false
                     });
                 } catch (error) {
-                    // バイナリファイルや読み取り不可能なファイルは無視
+                    // 読み取り不可能なファイルは無視
                     continue;
                 }
             }

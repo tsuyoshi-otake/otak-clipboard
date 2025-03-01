@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { ClipboardUtils } from '../utils/ClipboardUtils';
-import { FileUtils } from '../utils/FileUtils';
+import { FileUtils, FileInfo } from '../utils/FileUtils';
 import { LimitChecker } from '../utils/LimitChecker';
 import { GitignoreUtils } from '../utils/GitignoreUtils';
 
@@ -54,9 +54,11 @@ export class CopyCommands {
             return;
         }
 
+        // シングルファイルはバイナリではないことが確定
         await this.clipboardUtils.copyToClipboard([{
             path: editor.document.fileName,
-            content: text
+            content: text,
+            isBinary: false
         }]);
 
         const relativePath = this.getRelativePath(editor.document.fileName);
@@ -77,7 +79,8 @@ export class CopyCommands {
 
         const fileContents = editors.map(editor => ({
             path: editor.document.fileName,
-            content: editor.document.getText()
+            content: editor.document.getText(),
+            isBinary: false
         }));
 
         if (!this.limitChecker.checkFilesCount(fileContents.length)) {
@@ -112,9 +115,11 @@ export class CopyCommands {
             return;
         }
 
+        // シングルファイルはバイナリではないことが確定
         await this.clipboardUtils.copyToClipboard([{
             path: uri.fsPath,
-            content
+            content,
+            isBinary: false
         }]);
 
         const relativePath = this.getRelativePath(uri.fsPath);
@@ -142,7 +147,7 @@ export class CopyCommands {
     /**
      * 複数ファイルのコピー処理を実行
      */
-    private async copyFiles(files: { path: string; content: string }[]): Promise<void> {
+    private async copyFiles(files: FileInfo[]): Promise<void> {
         if (files.length === 0) {
             vscode.window.showWarningMessage('コピー可能なファイルが見つかりません。');
             return;
@@ -152,8 +157,9 @@ export class CopyCommands {
             return;
         }
 
-        const totalContent = files.map(f => f.content).join('\n');
-        if (!this.limitChecker.checkContentSize(totalContent)) {
+        // テキストファイルの内容のみを結合してサイズチェック
+        const textContent = files.filter(f => !f.isBinary).map(f => f.content).join('\n');
+        if (!this.limitChecker.checkContentSize(textContent)) {
             return;
         }
 
