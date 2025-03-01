@@ -1,95 +1,73 @@
 # VSCode Extension: otak-clipboard
 
-## Extension Overview
-A VSCode extension that enables users to easily copy files and their contents to the clipboard, optimized for use with generative AI tools like ChatGPT.
+## Overview
+The otak-clipboard extension enables users to easily copy files and their content to the clipboard directly from VSCode. It is optimized for use with generative AI tools, such as ChatGPT, by providing context and markdown formatting for the copied data.
 
 ## Core Features
+1. **Context Menu Integration**
+   - **Editor Context Menu**
+     - Copy current tab content
+     - Copy all opened tabs content (including non-visible tabs)
+   - **Explorer Context Menu**
+     - Copy a single file
+     - Copy folder contents (direct children only)
+     - Copy folder contents recursively
 
-### Context Menu Integration
-1. Editor Context Menu
-   - Copy current tab content
-   - Copy all opened tabs content
+2. **File Processing**
+   - **Text Formatting**
+     - Markdown-based output format with syntax highlighting based on file extension.
+     - File paths are included in the output for context.
+   - **Protection Measures**
+     - Character limit: 400,000 characters (roughly 100K tokens)
+     - File count limit: 50 files maximum
+     - Binary file exclusion with multi-level detection (using both file extensions and file content analysis through magic numbers, null byte search, and control character ratio checks).
+     - .gitignore integration (configurable) to automatically exclude files based on .gitignore rules.
+     - However, if a file is binary (for example, images or executables) its file name is still included in the clipboard output, while its content is not.
 
-2. Explorer Context Menu
-   - Copy single file
-   - Copy folder contents (direct children only)
-   - Copy folder contents recursively
+3. **Configuration**
+   - Various parameters can be customized through the configuration:
+     - **otakClipboard.maxCharacters:** Maximum allowed characters per copy operation.
+     - **otakClipboard.maxFiles:** Maximum number of files allowed.
+     - **otakClipboard.excludeDirectories:** A list of directories (e.g., `.git`, `node_modules`, `out`) that are always excluded.
+     - **otakClipboard.knownTextExtensions:** List of file extensions that should always be treated as text.
+     - **otakClipboard.knownBinaryExtensions:** List of file extensions that are forced to be treated as binary.
+     - **otakClipboard.binaryDetectionRules:** Rules for detecting binary files, including:
+       - `nullByteCheck`: Check for null bytes.
+       - `controlCharRatio`: Maximum ratio of control characters.
+       - `controlCharCheck`: Enable control character check.
+   - These options allow easy adjustment of how files are processed and copied.
 
-### File Processing
-1. Text Formatting
-   - Markdown-based output format
-   - Syntax highlighting support based on file extension
-   - File path inclusion for context
+4. **Notifications**
+   - Clear, user-friendly notifications are displayed on copy operations.
+   - Notifications use VSCode’s progress API to show messages that automatically dismiss after 5 seconds.
+   - Notification messages include detailed information about which file(s) or directory content was copied, using workspace relative paths.
 
-2. Protection Measures
-   - Character limit: 400,000 (approximately 100K tokens)
-   - File count limit: 50 files maximum
-   - Binary file exclusion
-   - .gitignore integration (configurable)
-
-### Project Structure
-1. Main Components:
-   - extension.ts: Entry point and command registration
-   - CopyCommands.ts: Core command implementations
-
-2. Utility Classes:
-   - ClipboardUtils: Clipboard operations and text formatting
-   - FileUtils: File system operations and directory traversal
-   - LimitChecker: Size and count limit validation
-   - GitignoreUtils: .gitignore pattern matching
-
-### Configuration
-- Configurable .gitignore integration
-- User settings in package.json
-- VSCode command contributions
-- Context menu registration
-
-### Technical Implementation
-1. TypeScript Configuration
-   - Node16 module system
-   - ES2022 target
-   - Strict type checking
-   - Source map support
-
-2. Dependencies
-   - ignore: .gitignore pattern matching
-   - VSCode extension API
-
-3. Build System
-   - npm scripts for compilation
-   - TypeScript compiler configuration
-   - ESLint integration
+## Development and Technical Implementation
+- **Code Organization**
+  - **extension.ts:** Serves as the entry point and registers commands.
+  - **CopyCommands.ts:** Contains the core implementations for the copy operations.
+  - **Utility Classes:**
+    - **ClipboardUtils:** Handles converting file data to markdown format and copying to the clipboard.
+    - **FileUtils:** Manages file system operations, including recursive directory traversals. It also uses enhanced binary detection (via magic numbers, null byte detection, and control character analysis) and supports configuration-based overrides.
+    - **LimitChecker:** Validates character and file count limits using configurable values.
+    - **GitignoreUtils:** Integrates .gitignore rules for file exclusion.
+- **Technical Specifications**
+  - Developed using TypeScript with strict type checking.
+  - Configured for Node16 module system and ES2022 target.
+  - Uses asynchronous operations for efficient file reading.
+  - Integrates with VSCode’s API and command contributions.
 
 ## User Experience
-- Two-click copy operations
-- Clear success/error notifications
-- Intuitive context menu placement
-- Configurable through VSCode settings
-
-## Development Guidelines
-1. Code Organization
-   - Modular architecture
-   - Clear separation of concerns
-   - TypeScript strict mode compliance
-
-2. Error Handling
-   - User-friendly error messages
-   - Graceful failure handling
-   - Size limit enforcement
-
-3. Performance Considerations
-   - Efficient file reading
-   - Cached .gitignore rules
-   - Asynchronous operations
+- Two-click operations from context menus allow users to quickly copy the desired content.
+- Both current tab and all opened tabs (collected using tab groups) can be copied.
+- Folder copying includes both files and subdirectories; empty directories are also recorded.
+- The final output in the clipboard is formatted in markdown for ease of use with AI tools.
 
 ## Testing
-1. Manual Testing
-   - Context menu functionality
-   - Copy operations
-   - Error scenarios
-   - Configuration changes
+- Manual testing covers:
+  - Context menu functionality.
+  - Copy operations for text, binary, and directory content.
+  - Error handling (e.g., exceeding size limits).
+- Future work may include automated unit and integration testing within VSCode.
 
-2. Automated Testing (Future)
-   - Unit tests setup
-   - Integration test framework
-   - VSCode extension testing
+This document represents our comprehensive understanding of the otak-clipboard extension’s design, features, and configuration options.
