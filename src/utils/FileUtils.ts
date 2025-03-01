@@ -13,26 +13,27 @@ export interface FileInfo {
 export class FileUtils {
     private readonly gitignoreUtils: GitignoreUtils;
     private readonly excludeDirectories = new Set([
-        '.git',              // Gitディレクトリ
-        'node_modules',      // Node.jsの依存関係
+        '.git',              // Git directory
+        'node_modules',      // Node.js dependencies
+        'out',              // Build output
     ]);
 
-    // 常にテキストファイルとして扱う拡張子
+    // Extensions that should always be treated as text files
     private readonly textExtensions = new Set([
-        'txt', 'md', 'markdown',           // 一般的なテキスト
-        'json', 'yaml', 'yml', 'toml',     // 設定ファイル
+        'txt', 'md', 'markdown',           // Common text formats
+        'json', 'yaml', 'yml', 'toml',     // Config files
         'js', 'ts', 'jsx', 'tsx',          // JavaScript/TypeScript
-        'py', 'rb', 'php', 'java',         // その他のプログラミング言語
-        'css', 'scss', 'less',             // スタイルシート
-        'html', 'htm', 'xml',              // マークアップ
-        'sh', 'bash', 'zsh',               // シェルスクリプト
-        'ini', 'conf', 'cfg',              // 設定ファイル
-        'log',                             // ログファイル
-        'csv', 'tsv',                      // データファイル
-        'gitignore', 'env',                // その他の設定ファイル
+        'py', 'rb', 'php', 'java',         // Other programming languages
+        'css', 'scss', 'less',             // Stylesheets
+        'html', 'htm', 'xml',              // Markup
+        'sh', 'bash', 'zsh',               // Shell scripts
+        'ini', 'conf', 'cfg',              // Config files
+        'log',                             // Log files
+        'csv', 'tsv',                      // Data files
+        'gitignore', 'env',                // Other config files
     ]);
 
-    // マジックナンバーのパターン
+    // Magic number patterns for binary files
     private readonly MAGIC_NUMBERS = [
         { bytes: [0xFF, 0xD8, 0xFF], extension: 'jpg/jpeg' },          // JPEG
         { bytes: [0x89, 0x50, 0x4E, 0x47], extension: 'png' },         // PNG
@@ -49,28 +50,28 @@ export class FileUtils {
     }
 
     /**
-     * ファイルがバイナリかどうかを判定
+     * Check if a file is binary
      */
     private async isBinaryFile(uri: vscode.Uri): Promise<boolean> {
         try {
-            // まず拡張子でテキストファイルかチェック
+            // First check if it's a known text file extension
             const ext = path.extname(uri.fsPath).slice(1).toLowerCase();
             if (this.textExtensions.has(ext)) {
                 return false;
             }
 
-            // 明らかなバイナリ拡張子をチェック
+            // Check for obvious binary extensions
             if (['exe', 'dll', 'so', 'dylib', 'bin', 'obj'].includes(ext)) {
                 return true;
             }
 
-            // ファイルの先頭バイトを読み込む
+            // Read the file header
             const fileContent = await vscode.workspace.fs.readFile(uri);
             if (fileContent.length === 0) {
                 return false;
             }
 
-            // マジックナンバーでチェック
+            // Check magic numbers
             for (const magic of this.MAGIC_NUMBERS) {
                 if (fileContent.length >= magic.bytes.length) {
                     let match = true;
@@ -86,31 +87,31 @@ export class FileUtils {
                 }
             }
 
-            // NULLバイトの存在をチェック（テキストファイルにはNULLバイトは通常存在しない）
+            // Check for NULL bytes (text files shouldn't contain these)
             const hasNullByte = fileContent.includes(0);
             if (hasNullByte) {
                 return true;
             }
 
-            // 制御文字の割合をチェック
+            // Check the ratio of control characters
             const controlChars = fileContent.filter(byte => 
-                (byte < 32 && ![9, 10, 13].includes(byte)) || // TAB, LF, CR以外の制御文字
-                (byte >= 0x7F && byte <= 0x9F)               // 拡張ASCII制御文字
+                (byte < 32 && ![9, 10, 13].includes(byte)) || // Exclude TAB, LF, CR
+                (byte >= 0x7F && byte <= 0x9F)               // Extended ASCII control chars
             );
             const controlCharRatio = controlChars.length / fileContent.length;
-            if (controlCharRatio > 0.3) { // 30%以上が制御文字の場合はバイナリと判断
+            if (controlCharRatio > 0.3) { // If more than 30% are control chars, consider it binary
                 return true;
             }
 
             return false;
         } catch (error) {
-            // エラーが発生した場合は安全のためバイナリとして扱う
+            // If there's an error, treat as binary for safety
             return true;
         }
     }
 
     /**
-     * 単一ファイルの内容を読み込む
+     * Read the contents of a single file
      */
     async readFile(uri: vscode.Uri): Promise<string> {
         const document = await vscode.workspace.openTextDocument(uri);
@@ -118,7 +119,7 @@ export class FileUtils {
     }
 
     /**
-     * ディレクトリ内のファイルを読み込む
+     * Read files from a directory
      */
     async readFilesInDirectory(uri: vscode.Uri, recursive: boolean): Promise<FileInfo[]> {
         const results: FileInfo[] = [];
@@ -127,14 +128,14 @@ export class FileUtils {
         try {
             await this.processDirectory(uri, recursive, results, useGitignore);
         } catch (error) {
-            vscode.window.showErrorMessage(`ディレクトリの読み込み中にエラーが発生しました: ${error}`);
+            vscode.window.showErrorMessage(`Error reading directory: ${error}`);
         }
 
         return results;
     }
 
     /**
-     * ディレクトリを再帰的に処理
+     * Process directory recursively
      */
     private async processDirectory(
         uri: vscode.Uri,
@@ -144,7 +145,7 @@ export class FileUtils {
     ): Promise<void> {
         const entries = await vscode.workspace.fs.readDirectory(uri);
 
-        // ディレクトリ自体を記録
+        // Record the directory itself
         results.push({
             path: uri.fsPath,
             isDirectory: true,
@@ -155,17 +156,17 @@ export class FileUtils {
             const fullPath = path.join(uri.fsPath, name);
             const fileUri = vscode.Uri.file(fullPath);
 
-            // ディレクトリの処理
+            // Process directories
             if (type === vscode.FileType.Directory) {
                 if (this.excludeDirectories.has(name)) {
                     continue;
                 }
 
-                // 再帰的にディレクトリを処理
+                // Process directory recursively
                 if (recursive) {
                     await this.processDirectory(fileUri, recursive, results, useGitignore);
                 } else {
-                    // 非再帰モードでもディレクトリは記録
+                    // Record directory even in non-recursive mode
                     const dirEntries = await vscode.workspace.fs.readDirectory(fileUri);
                     results.push({
                         path: fullPath,
@@ -176,16 +177,16 @@ export class FileUtils {
                 continue;
             }
 
-            // ファイルの処理
+            // Process files
             if (type === vscode.FileType.File) {
-                // .gitignoreチェック
+                // Check .gitignore
                 if (useGitignore && await this.gitignoreUtils.isIgnored(fileUri)) {
                     continue;
                 }
 
                 const isBinary = await this.isBinaryFile(fileUri);
                 if (isBinary) {
-                    // バイナリファイルの場合は、パスのみを記録
+                    // For binary files, only record the path
                     results.push({
                         path: fullPath,
                         isBinary: true
@@ -201,7 +202,7 @@ export class FileUtils {
                         isBinary: false
                     });
                 } catch (error) {
-                    // 読み取り不可能なファイルは無視
+                    // Skip unreadable files
                     continue;
                 }
             }

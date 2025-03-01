@@ -6,7 +6,7 @@ export class GitignoreUtils {
     private ignoreRules: Map<string, ReturnType<typeof ignore>> = new Map();
 
     /**
-     * 指定されたファイルが.gitignoreで除外対象かチェック
+     * Check if a file is ignored by .gitignore
      */
     async isIgnored(uri: vscode.Uri): Promise<boolean> {
         const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
@@ -33,12 +33,12 @@ export class GitignoreUtils {
     }
 
     /**
-     * .gitignoreルールを取得（キャッシュ付き）
+     * Get .gitignore rules with caching
      */
     private async getIgnoreRules(workspaceUri: vscode.Uri): Promise<ReturnType<typeof ignore> | null> {
         const workspacePath = workspaceUri.fsPath;
         
-        // キャッシュチェック
+        // Check cache
         if (this.ignoreRules.has(workspacePath)) {
             return this.ignoreRules.get(workspacePath)!;
         }
@@ -55,7 +55,7 @@ export class GitignoreUtils {
             
             return ig;
         } catch (error) {
-            // .gitignoreが存在しない場合など
+            // No .gitignore file found or other error
             return null;
         }
     }

@@ -4,7 +4,7 @@ import { FileInfo } from './FileUtils';
 
 export class ClipboardUtils {
     /**
-     * 複数のファイル内容をマークダウン形式でクリップボードにコピー
+     * Copy multiple files to clipboard in markdown format
      */
     async copyToClipboard(files: FileInfo[]): Promise<void> {
         const markdownContent = this.convertToMarkdown(files);
@@ -12,7 +12,7 @@ export class ClipboardUtils {
     }
 
     /**
-     * ファイル内容をマークダウン形式に変換
+     * Convert file contents to markdown format
      */
     private convertToMarkdown(files: FileInfo[]): string {
         return files.map(file => {
@@ -21,27 +21,27 @@ export class ClipboardUtils {
             const fileExtension = path.extname(fileName).slice(1) || 'txt';
 
             if (file.isDirectory) {
-                // ディレクトリの場合
+                // Directory entry
                 return [
                     `# ${filePath}`,
                     '',
                     '```',
-                    file.isEmpty ? `(空のディレクトリ)` : `(ディレクトリ)`,
+                    file.isEmpty ? '(Empty Directory)' : '(Directory)',
                     '```',
                     ''
                 ].join('\n');
             } else if (file.isBinary) {
-                // バイナリファイルの場合
+                // Binary file entry
                 return [
                     `# ${filePath}`,
                     '',
                     '```',
-                    `(バイナリファイル)`,
+                    '(Binary File)',
                     '```',
                     ''
                 ].join('\n');
             } else {
-                // テキストファイルの場合
+                // Text file entry
                 return [
                     `# ${filePath}`,
                     '',

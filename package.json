@@ -22,30 +22,30 @@
         "otakClipboard.useGitignore": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "`.gitignore`の設定を考慮し、対象ファイルをクリップボードコピーから除外します。"
+          "markdownDescription": "Consider `.gitignore` settings and exclude matching files from clipboard copy."
         }
       }
     },
     "commands": [
       {
         "command": "otakClipboard.copyCurrentTab",
-        "title": "現在のタブをコピー"
+        "title": "Copy Current Tab"
       },
       {
         "command": "otakClipboard.copyAllOpenedTabs",
-        "title": "開いているすべてのタブをコピー"
+        "title": "Copy All Opened Tabs"
       },
       {
         "command": "otakClipboard.copyFile",
-        "title": "ファイルをコピー"
+        "title": "Copy File"
       },
       {
         "command": "otakClipboard.copyFolder",
-        "title": "フォルダ内コピー(直下の階層のみ)"
+        "title": "Copy Folder Contents (Direct Children Only)"
       },
       {
         "command": "otakClipboard.copyFolderRecursive",
-        "title": "フォルダ内すべてコピー(再帰的)"
+        "title": "Copy All Folder Contents (Recursive)"
       }
     ],
     "menus": {

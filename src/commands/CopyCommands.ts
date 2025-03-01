@@ -19,7 +19,7 @@ export class CopyCommands {
     }
 
     /**
-     * ファイルパスをワークスペースからの相対パスに変換
+     * Convert file path to workspace relative path
      */
     private getRelativePath(filePath: string): string {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -27,7 +27,7 @@ export class CopyCommands {
     }
 
     /**
-     * 5秒後に自動で消える通知を表示
+     * Show notification that auto-dismisses after 5 seconds
      */
     private async showTimedMessage(message: string) {
         await vscode.window.withProgress(
@@ -43,12 +43,12 @@ export class CopyCommands {
     }
 
     /**
-     * 現在アクティブなエディタのタブ内容をコピー
+     * Copy content of current active editor tab
      */
     async copyCurrentTab(): Promise<void> {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
-            vscode.window.showErrorMessage('アクティブなエディタが見つかりません。');
+            vscode.window.showErrorMessage('No active editor found.');
             return;
         }
 
@@ -65,15 +65,15 @@ export class CopyCommands {
 
         const relativePath = this.getRelativePath(editor.document.fileName);
         await this.showTimedMessage(
-            `"${relativePath}" をクリップボードにコピーしました。`
+            `Copied "${relativePath}" to clipboard.`
         );
     }
 
     /**
-     * 開いている全タブの内容をコピー
+     * Copy content of all opened tabs
      */
     async copyAllOpenedTabs(): Promise<void> {
-        // すべての開いているタブを取得
+        // Get all opened tabs
         const allTabs = vscode.window.tabGroups.all
             .map(group => group.tabs)
             .flat()
@@ -81,7 +81,7 @@ export class CopyCommands {
             .map(tab => (tab.input as vscode.TabInputText).uri);
 
         if (allTabs.length === 0) {
-            vscode.window.showErrorMessage('開いているエディタが見つかりません。');
+            vscode.window.showErrorMessage('No open editors found.');
             return;
         }
 
@@ -113,17 +113,17 @@ export class CopyCommands {
         const relativePaths = fileContents.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
         await this.showTimedMessage(
-            `${fileContents.length}個のタブをコピーしました: ${fileList}`
+            `Copied ${fileContents.length} tab(s): ${fileList}`
         );
     }
 
     /**
-     * 指定されたファイルの内容をコピー
+     * Copy content of specified file
      */
     async copyFile(uri: vscode.Uri): Promise<void> {
         const useGitignore = vscode.workspace.getConfiguration('otakClipboard').get('useGitignore', true);
         if (useGitignore && await this.gitignoreUtils.isIgnored(uri)) {
-            vscode.window.showWarningMessage('選択されたファイルは.gitignoreによって除外されています。');
+            vscode.window.showWarningMessage('Selected file is excluded by .gitignore');
             return;
         }
 
@@ -140,12 +140,12 @@ export class CopyCommands {
 
         const relativePath = this.getRelativePath(uri.fsPath);
         await this.showTimedMessage(
-            `"${relativePath}" をクリップボードにコピーしました。`
+            `Copied "${relativePath}" to clipboard.`
         );
     }
 
     /**
-     * フォルダ内のファイルをコピー（直下のみ）
+     * Copy files in directory (non-recursive)
      */
     async copyFolder(uri: vscode.Uri): Promise<void> {
         const files = await this.fileUtils.readFilesInDirectory(uri, false);
@@ -153,7 +153,7 @@ export class CopyCommands {
     }
 
     /**
-     * フォルダ内の全ファイルをコピー（再帰的）
+     * Copy all files in directory (recursive)
      */
     async copyFolderRecursive(uri: vscode.Uri): Promise<void> {
         const files = await this.fileUtils.readFilesInDirectory(uri, true);
@@ -161,11 +161,11 @@ export class CopyCommands {
     }
 
     /**
-     * 複数ファイルのコピー処理を実行
+     * Process multiple files copy operation
      */
     private async copyFiles(files: FileInfo[]): Promise<void> {
         if (files.length === 0) {
-            vscode.window.showWarningMessage('コピー可能なファイルが見つかりません。');
+            vscode.window.showWarningMessage('No files found to copy.');
             return;
         }
 
@@ -173,7 +173,7 @@ export class CopyCommands {
             return;
         }
 
-        // テキストファイルの内容のみを結合してサイズチェック
+        // Check size only for text content
         const textContent = files.filter(f => !f.isBinary).map(f => f.content).join('\n');
         if (!this.limitChecker.checkContentSize(textContent)) {
             return;
@@ -184,7 +184,7 @@ export class CopyCommands {
         const relativePaths = files.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
         await this.showTimedMessage(
-            `${files.length}個のファイルをコピーしました: ${fileList}`
+            `Copied ${files.length} file(s): ${fileList}`
         );
     }
 }
