@@ -10,6 +10,7 @@ export class CopyCommands {
     private readonly fileUtils: FileUtils;
     private readonly limitChecker: LimitChecker;
     private readonly gitignoreUtils: GitignoreUtils;
+    private currentNotification: vscode.Disposable | undefined;
 
     constructor() {
         this.clipboardUtils = new ClipboardUtils();
@@ -30,13 +31,14 @@ export class CopyCommands {
      * 5秒後に自動で消える通知を表示
      */
     private showTimedMessage(message: string) {
-        const notification = vscode.window.showInformationMessage(message);
-        notification.then(() => {
-            setTimeout(() => {
-                // 新しい空の通知を表示して古い通知を消す
-                void vscode.window.showInformationMessage('');
-            }, 5000);
-        });
+        // 既存の通知があれば消去
+        if (this.currentNotification) {
+            this.currentNotification.dispose();
+            this.currentNotification = undefined;
+        }
+
+        // 新しい通知を表示
+        this.currentNotification = vscode.window.setStatusBarMessage(message, 5000);
     }
 
     /**
@@ -54,7 +56,6 @@ export class CopyCommands {
             return;
         }
 
-        // シングルファイルはバイナリではないことが確定
         await this.clipboardUtils.copyToClipboard([{
             path: editor.document.fileName,
             content: text,
@@ -71,17 +72,32 @@ export class CopyCommands {
      * 開いている全タブの内容をコピー
      */
     async copyAllOpenedTabs(): Promise<void> {
-        const editors = vscode.window.visibleTextEditors;
-        if (editors.length === 0) {
+        // すべての開いているタブを取得
+        const allTabs = vscode.window.tabGroups.all
+            .map(group => group.tabs)
+            .flat()
+            .filter(tab => tab.input instanceof vscode.TabInputText)
+            .map(tab => (tab.input as vscode.TabInputText).uri);
+
+        if (allTabs.length === 0) {
             vscode.window.showErrorMessage('開いているエディタが見つかりません。');
             return;
         }
 
-        const fileContents = editors.map(editor => ({
-            path: editor.document.fileName,
-            content: editor.document.getText(),
-            isBinary: false
-        }));
+        const fileContents: FileInfo[] = [];
+        for (const uri of allTabs) {
+            try {
+                const document = await vscode.workspace.openTextDocument(uri);
+                fileContents.push({
+                    path: uri.fsPath,
+                    content: document.getText(),
+                    isBinary: false
+                });
+            } catch (error) {
+                console.error(`Failed to read file: ${uri.fsPath}`, error);
+                continue;
+            }
+        }
 
         if (!this.limitChecker.checkFilesCount(fileContents.length)) {
             return;
@@ -115,7 +131,6 @@ export class CopyCommands {
             return;
         }
 
-        // シングルファイルはバイナリではないことが確定
         await this.clipboardUtils.copyToClipboard([{
             path: uri.fsPath,
             content,
