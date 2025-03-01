@@ -15,15 +15,19 @@ export class ClipboardUtils {
      * Convert file contents to markdown format
      */
     private convertToMarkdown(files: FileInfo[]): string {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath || '';
+
         return files.map(file => {
+            // 相対パスを取得
+            const relativePath = path.relative(workspaceFolder, file.path);
+
             const fileName = path.basename(file.path);
-            const filePath = file.path;
             const fileExtension = path.extname(fileName).slice(1) || 'txt';
 
             if (file.isDirectory) {
                 // Directory entry
                 return [
-                    `# ${filePath}`,
+                    `# ${relativePath}`,
                     '',
                     '```',
                     file.isEmpty ? '(Empty Directory)' : '(Directory)',
@@ -33,7 +37,7 @@ export class ClipboardUtils {
             } else if (file.isBinary) {
                 // Binary file entry
                 return [
-                    `# ${filePath}`,
+                    `# ${relativePath}`,
                     '',
                     '```',
                     '(Binary File)',
@@ -43,7 +47,7 @@ export class ClipboardUtils {
             } else {
                 // Text file entry
                 return [
-                    `# ${filePath}`,
+                    `# ${relativePath}`,
                     '',
                     '```' + fileExtension,
                     file.content,
