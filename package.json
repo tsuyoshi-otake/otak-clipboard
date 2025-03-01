@@ -12,12 +12,68 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Otak Clipboard Configuration",
+      "properties": {
+        "otakClipboard.useGitignore": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "`.gitignore`の設定を考慮し、対象ファイルをクリップボードコピーから除外します。"
+        }
+      }
+    },
     "commands": [
       {
-        "command": "otak-clipboard.helloWorld",
-        "title": "Hello World"
+        "command": "otakClipboard.copyCurrentTab",
+        "title": "現在のタブをコピー"
+      },
+      {
+        "command": "otakClipboard.copyAllOpenedTabs",
+        "title": "開いているすべてのタブをコピー"
+      },
+      {
+        "command": "otakClipboard.copyFile",
+        "title": "ファイルをコピー"
+      },
+      {
+        "command": "otakClipboard.copyFolder",
+        "title": "フォルダ内コピー(直下の階層のみ)"
+      },
+      {
+        "command": "otakClipboard.copyFolderRecursive",
+        "title": "フォルダ内すべてコピー(再帰的)"
       }
-    ]
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "otakClipboard.copyFile",
+          "when": "resourceLangId != directory",
+          "group": "navigation"
+        },
+        {
+          "command": "otakClipboard.copyFolder",
+          "when": "resourceLangId == directory",
+          "group": "navigation"
+        },
+        {
+          "command": "otakClipboard.copyFolderRecursive",
+          "when": "resourceLangId == directory",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "otakClipboard.copyCurrentTab",
+          "group": "navigation"
+        },
+        {
+          "command": "otakClipboard.copyAllOpenedTabs",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -28,14 +84,17 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.97.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
+    "@types/vscode": "^1.97.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
-    "eslint": "^9.19.0",
-    "typescript": "^5.7.3",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.19.0",
+    "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "ignore": "^5.3.2"
   }
 }
