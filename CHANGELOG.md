@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-04-27
+### Changed
+- Increased the default value for `otakClipboard.maxFiles` from 50 to 200.
 ## [1.0.0] - 2025-03-03
 ### Added
 - Initial release of **otak-clipboard** extension.
