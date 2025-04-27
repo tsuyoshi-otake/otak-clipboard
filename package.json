@@ -13,7 +13,7 @@
     "url": "https://github.com/tsuyoshi-otake/otak-clipboard/issues"
   },
   "homepage": "https://github.com/tsuyoshi-otake/otak-clipboard#readme",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -39,7 +39,7 @@
         },
         "otakClipboard.maxFiles": {
           "type": "number",
-          "default": 50,
+          "default": 200,
           "markdownDescription": "Maximum number of files allowed in a single copy operation."
         },
         "otakClipboard.excludeDirectories": {
