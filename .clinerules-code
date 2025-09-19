@@ -19,7 +19,7 @@ The otak-clipboard extension enables users to easily copy files and their conten
      - File paths are included in the output for context.
    - **Protection Measures**
      - Character limit: 400,000 characters (roughly 100K tokens)
-     - File count limit: 50 files maximum
+     - File count limit: 400 files maximum
      - Binary file exclusion with multi-level detection (using both file extensions and file content analysis through magic numbers, null byte search, and control character ratio checks).
      - .gitignore integration (configurable) to automatically exclude files based on .gitignore rules.
      - However, if a file is binary (for example, images or executables) its file name is still included in the clipboard output, while its content is not.

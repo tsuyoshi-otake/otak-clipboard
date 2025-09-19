@@ -77,7 +77,7 @@ otak-clipboard simplifies copying file contents and file structures with intelli
 otak-clipboard provides highly configurable options:
 
 - `otakClipboard.maxCharacters`: Maximum allowed characters to copy (**default: 400000**).
-- `otakClipboard.maxFiles`: Maximum number of files allowed per operation (**default: 200**).
+- `otakClipboard.maxFiles`: Maximum number of files allowed per operation (**default: 400**).
 - `otakClipboard.excludeDirectories`: Directories always excluded (e.g., **`.git`, `node_modules`, `out`**).
 - `otakClipboard.knownTextExtensions`: Extensions always treated as text.
 - `otakClipboard.knownBinaryExtensions`: Extensions always treated as binary.

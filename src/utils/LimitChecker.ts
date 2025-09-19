@@ -8,7 +8,7 @@ export class LimitChecker {
         const config = vscode.workspace.getConfiguration('otakClipboard');
         return {
             maxCharacters: config.get<number>('maxCharacters', 400000),
-            maxFiles: config.get<number>('maxFiles', 50)
+            maxFiles: config.get<number>('maxFiles', 400)
         };
     }
 
