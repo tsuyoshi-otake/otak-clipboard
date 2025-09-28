@@ -4,7 +4,7 @@
   "description": "This VSCode extension allows you to copy all files within a directory to your clipboard in just two clicks, or to copy only the currently opened tab. It's a convenient clipboard tool, optimized for automated workflows powered by generative AI.",
   "publisher": "odangoo",
   "license": "MIT",
-  "icon": "./images/icon.png",
+  "icon": "images/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/tsuyoshi-otake/otak-clipboard"
@@ -13,7 +13,7 @@
     "url": "https://github.com/tsuyoshi-otake/otak-clipboard/issues"
   },
   "homepage": "https://github.com/tsuyoshi-otake/otak-clipboard#readme",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -92,6 +92,36 @@
             "controlCharCheck": true
           },
           "markdownDescription": "Rules for binary file detection: nullByteCheck (check for null bytes), controlCharRatio (maximum ratio of control characters), controlCharCheck (enable control character checking)."
+        },
+        "otakClipboard.detectSensitiveData": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable detection of sensitive data like API keys, tokens, and passwords. When detected, you'll be prompted to mask the sensitive information."
+        },
+        "otakClipboard.sensitiveDataPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "confidence": {
+                "type": "string",
+                "enum": ["high", "medium", "low"]
+              }
+            }
+          },
+          "default": [],
+          "markdownDescription": "Custom patterns for detecting sensitive data. Each pattern should have a name, regex pattern, and confidence level."
+        },
+        "otakClipboard.maskShowPartial": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "When masking sensitive data, show the first and last few characters instead of masking completely."
         }
       }
     },

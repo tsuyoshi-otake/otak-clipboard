@@ -1,11 +1,26 @@
 <p align="center">
   <h1 align="center">otak-clipboard</h1>
   <p align="center">
-    Copy files and their content directly to your clipboard from VS Code, seamlessly formatted in markdown—perfect for generative AI interaction.
+    Copy files and directories to your clipboard directly from VS Code, formatted as markdown—perfect for AI-powered development workflows.
   </p>
 </p>
 
 ---
+
+## 🔐 Security Feature: Automatic Sensitive Data Detection
+
+otak-clipboard now includes intelligent detection of API keys, tokens, and other sensitive information. When copying code, the extension automatically scans for:
+
+- **API Keys & Tokens**: AWS, Azure, GCP, OpenAI, Anthropic, GitHub, Stripe, and more
+- **Authentication Credentials**: JWT tokens, OAuth tokens, passwords, and private keys
+- **Connection Strings**: Database URLs and webhook endpoints
+
+When sensitive data is detected, you'll receive a warning with options to:
+- Mask all sensitive data automatically
+- Review and mask items individually
+- Continue without masking (with confirmation)
+
+This feature helps prevent accidental exposure of credentials when sharing code with AI assistants or colleagues. You can disable this feature or customize detection patterns in the extension settings.
 
 ## Usage
 
@@ -13,133 +28,143 @@ For Explorer:
 
 ![](images/copy-folder-contents.png)
 
-1. Right-click a file or folder in the VS Code Explorer.
-2. Select one of the following commands from the context menu:
-   - **Copy File** (for single files)
-   - **Copy Folder Contents** (copies immediate folder contents, without probing subfolders)
-   - **Copy All Folder Contents** (copies entire folder recursively, including all subdirectories)
-3. The content and structure of the files/folders will be formatted as markdown text, ready on your clipboard.
+1. Right-click any file or folder in the VS Code Explorer.
+2. Select one of these commands from the context menu:
+   - **Copy File** (single file)
+   - **Copy Folder Contents** (immediate children only)
+   - **Copy All Folder Contents** (recursive copy including all subdirectories)
+3. The selected content is instantly formatted as markdown and copied to your clipboard.
 
 For Tabs:
 
 ![](images/copy-all-opened-tabs.png)
 
-1. Right-click on the active editor tab or in the editor tab area.
-2. Select from the following commands:
-   - **Copy Current Tab** (copies currently displayed tab's content)
-   - **Copy All Opened Tabs** (copies all open tabs' content, including non-active or non-visible tabs from all tab groups)
-3. The tab contents will be converted to markdown format with syntax highlighting and copied to your clipboard.
+1. Right-click any editor tab or the tab bar area.
+2. Choose from:
+   - **Copy Current Tab** (active tab only)
+   - **Copy All Opened Tabs** (all tabs across all groups)
+3. Tab contents are formatted as markdown with syntax highlighting and copied to your clipboard.
 
-## Features  
+## Features
 
-otak-clipboard simplifies copying file contents and file structures with intelligent markdown formatting, designed specifically for contexts where generative AI tools are used.
+otak-clipboard streamlines sharing code with AI assistants by intelligently formatting file contents as markdown.
 
-### Key Features  
+### Key Features
 
 - **Context Menu Integration**:
   - *Editor context menu*:
-    - **Copy current tab** content  
-    - **Copy content of all opened tabs** (including tabs not actively visible)
+    - Copy current tab
+    - Copy all open tabs (across all tab groups)
   - *Explorer context menu*:
-    - **Copy single file** content  
-    - **Copy immediate folder contents** (files directly under the selected folder only)  
-    - **Copy folder contents recursively** (including files and folders at all nested levels)
+    - Copy single file
+    - Copy folder contents (shallow)
+    - Copy folder contents (recursive)
 
 - **Smart File Processing**:
-  - Markdown-enhanced output with syntax highlighting based on file types  
-  - File paths clearly included for context awareness  
+  - Automatic syntax highlighting based on file type
+  - Includes file paths for context
 
-- **Protection & Limits**:
-  - Maximum character limit per copy operation (**default: 400,000 chars ≈100K tokens**)  
-  - Maximum file limit per operation (**default: 200 files**)
+- **Built-in Safeguards**:
+  - Character limit: **400,000 chars** (≈100K tokens)
+  - File limit: **200 files** per operation
   - Intelligent binary file detection:
-      - Multi-level binary checks (**magic numbers**, **null bytes**, **control character ratio**)  
-      - File extension-based overrides configurable  
-      - Includes `.gitignore` integration to auto-exclude specified files (configurable)  
-  - Binary files will be listed clearly without including their content
+      - Magic number validation
+      - Null byte detection
+      - Control character analysis
+      - Configurable file extension rules
+      - `.gitignore` support (optional)
+  - Binary files are listed but content is excluded
 
 - **User-Friendly Notifications**:
-  - VSCode native progress API displays friendly status messages automatically dismissed after **5 seconds**  
-  - Messages include clear workspace-relative file paths  
+  - Clear progress indicators with auto-dismiss (5 seconds)
+  - Workspace-relative paths for easy navigation  
 
-## Requirements  
+## Requirements
 
-- Visual Studio Code **^1.90.0**
+- Visual Studio Code 1.90.0 or higher
 
-## Installation  
+## Installation
 
-1. Install from the VS Code Marketplace or VSIX package.
-2. Right-click files, folders, or use editor tab context menus.
-3. Instantly have markdown-formatted output on your clipboard.
+1. Install from the VS Code Marketplace or via VSIX package
+2. Right-click files, folders, or editor tabs to access commands
+3. Copied content is instantly available as markdown on your clipboard
 
-## Extension Settings  
+## Extension Settings
 
-otak-clipboard provides highly configurable options:
+Customize otak-clipboard behavior through VS Code settings:
 
-- `otakClipboard.maxCharacters`: Maximum allowed characters to copy (**default: 400000**).
-- `otakClipboard.maxFiles`: Maximum number of files allowed per operation (**default: 400**).
-- `otakClipboard.excludeDirectories`: Directories always excluded (e.g., **`.git`, `node_modules`, `out`**).
-- `otakClipboard.knownTextExtensions`: Extensions always treated as text.
-- `otakClipboard.knownBinaryExtensions`: Extensions always treated as binary.
-- `otakClipboard.binaryDetectionRules`: Configurable rules for binary detection, including:
-  - `nullByteCheck`: Null bytes detection to identify binary files.
-  - `controlCharRatio`: Maximum allowed control character ratio in text files.
-  - `controlCharCheck`: Toggle control character check.
+### General Settings
+- `otakClipboard.maxCharacters`: Maximum characters per copy (default: 400000)
+- `otakClipboard.maxFiles`: Maximum files per operation (default: 400)
+- `otakClipboard.excludeDirectories`: Directories to always exclude (e.g., `.git`, `node_modules`, `out`)
 
-## Commands  
+### Security Settings
+- `otakClipboard.detectSensitiveData`: Enable/disable sensitive data detection (default: true)
+- `otakClipboard.maskShowPartial`: Show partial values when masking (e.g., `sk-proj-****xyz`) (default: true)
+- `otakClipboard.sensitiveDataPatterns`: Add custom detection patterns for your specific needs
 
-- `otakClipboard.copyCurrentTab`: Copy content of current active editor tab  
-- `otakClipboard.copyAllOpenedTabs`: Copy content of all open editor tabs (in all tab groups)  
-- `otakClipboard.copyFile`: Copy the selected file's content via explorer menu  
-- `otakClipboard.copyFolder`: Copy immediate folder contents from explorer (non-recursive)  
-- `otakClipboard.copyFolderRecursive`: Copy whole folder contents recursively via explorer menu  
+### File Detection Settings
+- `otakClipboard.knownTextExtensions`: File extensions to treat as text
+- `otakClipboard.knownBinaryExtensions`: File extensions to treat as binary
+- `otakClipboard.binaryDetectionRules`: Fine-tune binary file detection:
+  - `nullByteCheck`: Enable null byte detection
+  - `controlCharRatio`: Maximum control character ratio for text files
+  - `controlCharCheck`: Enable control character checking
+
+## Commands
+
+- `otakClipboard.copyCurrentTab`: Copy active editor tab
+- `otakClipboard.copyAllOpenedTabs`: Copy all open tabs (all groups)
+- `otakClipboard.copyFile`: Copy selected file from Explorer
+- `otakClipboard.copyFolder`: Copy folder contents (shallow)
+- `otakClipboard.copyFolderRecursive`: Copy folder contents (recursive)  
 
 ## Clipboard Output Example
 
 ![](images/otak-clipboard.png)
 
-## Notifications  
+## Notifications
 
-Notifications clearly inform about actions performed:
+Clear feedback for every action:
 
-1. **Copy Operation**:
-    - Detailed paths of copied files/folders (workspace-relative)
-    - Automatic dismiss after 5 seconds
+1. **Copy Success**:
+    - Shows which files/folders were copied
+    - Auto-dismisses after 5 seconds
 
 2. **Limit Exceeded**:
-    - Clear message when operation exceeds character/file limits
-    - Helpful guidance about restrictions  
+    - Explains why the operation was limited
+    - Provides guidance on adjusting settings  
 
 ## Related Extensions
-Check out our other VS Code extensions.
+Check out our other VS Code extensions:
 
 ### [otak-monitor](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-monitor)
-Real-time system monitoring in VS Code. Track CPU, memory, and disk usage through the status bar with comprehensive tooltips and 1-minute averages.
+Real-time system monitoring in VS Code. Track CPU, memory, and disk usage with 1-minute averages in the status bar.
 
 ### [otak-proxy](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-proxy)
-One-click proxy configuration for VS Code and Git. Perfect for environments where network settings change frequently.
+One-click proxy configuration for VS Code and Git. Perfect for switching between network environments.
 
 ### [otak-committer](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-committer)
-Intelligent SCM operations with AI support. Features multilingual commit message generation (25 languages supported) and upcoming PR management capabilities.
+AI-powered commit message generation supporting 25 languages with upcoming PR management features.
 
 ### [otak-restart](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-restart)
-Quick restart operations for Extension Host and VS Code window via status bar tooltip. Streamlines your development workflow.
+Quick restart controls for Extension Host and VS Code window from the status bar.
 
 ### [otak-clock](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-clock)
-Display date and time for two time zones from around the world in VS Code. Essential for working across different time zones.
+Display two time zones simultaneously in VS Code. Essential for global collaboration.
 
 ### [otak-pomodoro](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-pomodoro)
-Enhance your productivity with this Pomodoro Timer extension. Helps balance focused work sessions with refreshing breaks using the Pomodoro Technique.
+Boost productivity with the Pomodoro Technique. Balance focused work sessions with scheduled breaks.
 
 ### [otak-zen](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-zen)
-Experience a distraction-free workflow with otak-zen. This extension transforms your VS Code interface into a minimalist environment by hiding non-essential UI elements, allowing you to focus solely on coding. Customize which components to show or hide, and toggle zen mode quickly via commands or the status bar.
+Create a distraction-free coding environment. Hide non-essential UI elements and customize your minimal workspace.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-For more information, visit the [GitHub repository](https://github.com/tsuyoshi-otake/otak-clipboard).
+Visit the [GitHub repository](https://github.com/tsuyoshi-otake/otak-clipboard) for more information.
 
 Part of the [otak-series](https://marketplace.visualstudio.com/search?term=otak&target=VSCode) VS Code extensions.

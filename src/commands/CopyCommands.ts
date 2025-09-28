@@ -4,18 +4,21 @@ import { ClipboardUtils } from '../utils/ClipboardUtils';
 import { FileUtils, FileInfo } from '../utils/FileUtils';
 import { LimitChecker } from '../utils/LimitChecker';
 import { GitignoreUtils } from '../utils/GitignoreUtils';
+import { SensitiveDataDetector } from '../utils/SensitiveDataDetector';
 
 export class CopyCommands {
     private readonly clipboardUtils: ClipboardUtils;
     private readonly fileUtils: FileUtils;
     private readonly limitChecker: LimitChecker;
     private readonly gitignoreUtils: GitignoreUtils;
+    private readonly sensitiveDataDetector: SensitiveDataDetector;
 
     constructor() {
         this.clipboardUtils = new ClipboardUtils();
         this.fileUtils = new FileUtils();
         this.limitChecker = new LimitChecker();
         this.gitignoreUtils = new GitignoreUtils();
+        this.sensitiveDataDetector = new SensitiveDataDetector();
     }
 
     /**
@@ -57,15 +60,40 @@ export class CopyCommands {
             return;
         }
 
+        // Check for sensitive data if enabled
+        const config = vscode.workspace.getConfiguration('otakClipboard');
+        const enableSensitiveDetection = config.get('detectSensitiveData', true);
+
+        let finalText = text;
+        let maskedStatus = '';
+
+        if (enableSensitiveDetection) {
+            try {
+                const matches = await this.sensitiveDataDetector.detectSensitiveData(text, editor.document.fileName);
+                if (matches.length > 0) {
+                    const result = await this.sensitiveDataDetector.promptUserForMasking(matches, text);
+                    finalText = result.content;
+                    if (result.masked) {
+                        maskedStatus = ' (sensitive data masked)';
+                    }
+                }
+            } catch (error: any) {
+                if (error.message === 'Operation cancelled by user') {
+                    return;
+                }
+                throw error;
+            }
+        }
+
         await this.clipboardUtils.copyToClipboard([{
             path: editor.document.fileName,
-            content: text,
+            content: finalText,
             isBinary: false
         }]);
 
         const relativePath = this.getRelativePath(editor.document.fileName);
         await this.showTimedMessage(
-            `Copied "${relativePath}" to clipboard.`
+            `Copied "${relativePath}" to clipboard${maskedStatus}.`
         );
     }
 
@@ -109,11 +137,44 @@ export class CopyCommands {
             return;
         }
 
-        await this.clipboardUtils.copyToClipboard(fileContents);
+        // Check for sensitive data if enabled
+        const config = vscode.workspace.getConfiguration('otakClipboard');
+        const enableSensitiveDetection = config.get('detectSensitiveData', true);
+        let maskedStatus = '';
+
+        if (enableSensitiveDetection) {
+            const processedContents: FileInfo[] = [];
+            for (const file of fileContents) {
+                try {
+                    const matches = await this.sensitiveDataDetector.detectSensitiveData(file.content || '', file.path);
+                    if (matches.length > 0) {
+                        const result = await this.sensitiveDataDetector.promptUserForMasking(matches, file.content || '');
+                        processedContents.push({
+                            ...file,
+                            content: result.content
+                        });
+                        if (result.masked) {
+                            maskedStatus = ' (sensitive data masked)';
+                        }
+                    } else {
+                        processedContents.push(file);
+                    }
+                } catch (error: any) {
+                    if (error.message === 'Operation cancelled by user') {
+                        return;
+                    }
+                    throw error;
+                }
+            }
+            await this.clipboardUtils.copyToClipboard(processedContents);
+        } else {
+            await this.clipboardUtils.copyToClipboard(fileContents);
+        }
+
         const relativePaths = fileContents.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
         await this.showTimedMessage(
-            `Copied ${fileContents.length} tab(s): ${fileList}`
+            `Copied ${fileContents.length} tab(s): ${fileList}${maskedStatus}`
         );
     }
 
@@ -121,7 +182,8 @@ export class CopyCommands {
      * Copy content of specified file
      */
     async copyFile(uri: vscode.Uri): Promise<void> {
-        const useGitignore = vscode.workspace.getConfiguration('otakClipboard').get('useGitignore', true);
+        const config = vscode.workspace.getConfiguration('otakClipboard');
+        const useGitignore = config.get('useGitignore', true);
         if (useGitignore && await this.gitignoreUtils.isIgnored(uri)) {
             vscode.window.showWarningMessage('Selected file is excluded by .gitignore');
             return;
@@ -132,15 +194,38 @@ export class CopyCommands {
             return;
         }
 
+        // Check for sensitive data if enabled
+        const enableSensitiveDetection = config.get('detectSensitiveData', true);
+        let finalContent = content;
+        let maskedStatus = '';
+
+        if (enableSensitiveDetection) {
+            try {
+                const matches = await this.sensitiveDataDetector.detectSensitiveData(content, uri.fsPath);
+                if (matches.length > 0) {
+                    const result = await this.sensitiveDataDetector.promptUserForMasking(matches, content);
+                    finalContent = result.content;
+                    if (result.masked) {
+                        maskedStatus = ' (sensitive data masked)';
+                    }
+                }
+            } catch (error: any) {
+                if (error.message === 'Operation cancelled by user') {
+                    return;
+                }
+                throw error;
+            }
+        }
+
         await this.clipboardUtils.copyToClipboard([{
             path: uri.fsPath,
-            content,
+            content: finalContent,
             isBinary: false
         }]);
 
         const relativePath = this.getRelativePath(uri.fsPath);
         await this.showTimedMessage(
-            `Copied "${relativePath}" to clipboard.`
+            `Copied "${relativePath}" to clipboard${maskedStatus}.`
         );
     }
 
@@ -179,12 +264,49 @@ export class CopyCommands {
             return;
         }
 
-        await this.clipboardUtils.copyToClipboard(files);
+        // Check for sensitive data if enabled
+        const config = vscode.workspace.getConfiguration('otakClipboard');
+        const enableSensitiveDetection = config.get('detectSensitiveData', true);
+        let maskedStatus = '';
+
+        if (enableSensitiveDetection) {
+            const processedFiles: FileInfo[] = [];
+            for (const file of files) {
+                if (file.isBinary) {
+                    processedFiles.push(file);
+                    continue;
+                }
+
+                try {
+                    const matches = await this.sensitiveDataDetector.detectSensitiveData(file.content || '', file.path);
+                    if (matches.length > 0) {
+                        const result = await this.sensitiveDataDetector.promptUserForMasking(matches, file.content || '');
+                        processedFiles.push({
+                            ...file,
+                            content: result.content
+                        });
+                        if (result.masked) {
+                            maskedStatus = ' (sensitive data masked)';
+                        }
+                    } else {
+                        processedFiles.push(file);
+                    }
+                } catch (error: any) {
+                    if (error.message === 'Operation cancelled by user') {
+                        return;
+                    }
+                    throw error;
+                }
+            }
+            await this.clipboardUtils.copyToClipboard(processedFiles);
+        } else {
+            await this.clipboardUtils.copyToClipboard(files);
+        }
 
         const relativePaths = files.map(f => this.getRelativePath(f.path));
         const fileList = relativePaths.join(', ');
         await this.showTimedMessage(
-            `Copied ${files.length} file(s): ${fileList}`
+            `Copied ${files.length} file(s): ${fileList}${maskedStatus}`
         );
     }
 }
