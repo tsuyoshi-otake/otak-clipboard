@@ -1,7 +1,7 @@
 {
   "name": "otak-clipboard",
   "displayName": "otak-clipboard",
-  "description": "This VSCode extension allows you to copy all files within a directory to your clipboard in just two clicks, or to copy only the currently opened tab. It's a convenient clipboard tool, optimized for automated workflows powered by generative AI.",
+  "description": "%extension.description%",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/icon.png",
@@ -13,7 +13,7 @@
     "url": "https://github.com/tsuyoshi-otake/otak-clipboard/issues"
   },
   "homepage": "https://github.com/tsuyoshi-otake/otak-clipboard#readme",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -30,17 +30,17 @@
         "otakClipboard.useGitignore": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Consider `.gitignore` settings and exclude matching files from clipboard copy."
+          "markdownDescription": "%config.useGitignore%"
         },
         "otakClipboard.maxCharacters": {
           "type": "number",
           "default": 400000,
-          "markdownDescription": "Maximum number of characters allowed in a single copy operation."
+          "markdownDescription": "%config.maxCharacters%"
         },
         "otakClipboard.maxFiles": {
           "type": "number",
           "default": 400,
-          "markdownDescription": "Maximum number of files allowed in a single copy operation."
+          "markdownDescription": "%config.maxFiles%"
         },
         "otakClipboard.excludeDirectories": {
           "type": "array",
@@ -52,7 +52,7 @@
             "node_modules",
             "out"
           ],
-          "markdownDescription": "List of directory names to always exclude from copying."
+          "markdownDescription": "%config.excludeDirectories%"
         },
         "otakClipboard.knownTextExtensions": {
           "type": "array",
@@ -60,19 +60,40 @@
             "type": "string"
           },
           "default": [
-            "txt", "md", "markdown",
-            "json", "yaml", "yml", "toml",
-            "js", "ts", "jsx", "tsx",
-            "py", "rb", "php", "java",
-            "css", "scss", "less",
-            "html", "htm", "xml",
-            "sh", "bash", "zsh",
-            "ini", "conf", "cfg",
+            "txt",
+            "md",
+            "markdown",
+            "json",
+            "yaml",
+            "yml",
+            "toml",
+            "js",
+            "ts",
+            "jsx",
+            "tsx",
+            "py",
+            "rb",
+            "php",
+            "java",
+            "css",
+            "scss",
+            "less",
+            "html",
+            "htm",
+            "xml",
+            "sh",
+            "bash",
+            "zsh",
+            "ini",
+            "conf",
+            "cfg",
             "log",
-            "csv", "tsv",
-            "gitignore", "env"
+            "csv",
+            "tsv",
+            "gitignore",
+            "env"
           ],
-          "markdownDescription": "List of file extensions to always treat as text files."
+          "markdownDescription": "%config.knownTextExtensions%"
         },
         "otakClipboard.knownBinaryExtensions": {
           "type": "array",
@@ -80,9 +101,14 @@
             "type": "string"
           },
           "default": [
-            "exe", "dll", "so", "dylib", "bin", "obj"
+            "exe",
+            "dll",
+            "so",
+            "dylib",
+            "bin",
+            "obj"
           ],
-          "markdownDescription": "List of file extensions to always treat as binary files."
+          "markdownDescription": "%config.knownBinaryExtensions%"
         },
         "otakClipboard.binaryDetectionRules": {
           "type": "object",
@@ -91,12 +117,12 @@
             "controlCharRatio": 0.3,
             "controlCharCheck": true
           },
-          "markdownDescription": "Rules for binary file detection: nullByteCheck (check for null bytes), controlCharRatio (maximum ratio of control characters), controlCharCheck (enable control character checking)."
+          "markdownDescription": "%config.binaryDetectionRules%"
         },
         "otakClipboard.detectSensitiveData": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "Enable detection of sensitive data like API keys, tokens, and passwords. When detected, you'll be prompted to mask the sensitive information."
+          "markdownDescription": "%config.detectSensitiveData%"
         },
         "otakClipboard.sensitiveDataPatterns": {
           "type": "array",
@@ -111,40 +137,44 @@
               },
               "confidence": {
                 "type": "string",
-                "enum": ["high", "medium", "low"]
+                "enum": [
+                  "high",
+                  "medium",
+                  "low"
+                ]
               }
             }
           },
           "default": [],
-          "markdownDescription": "Custom patterns for detecting sensitive data. Each pattern should have a name, regex pattern, and confidence level."
+          "markdownDescription": "%config.sensitiveDataPatterns%"
         },
         "otakClipboard.maskShowPartial": {
           "type": "boolean",
           "default": true,
-          "markdownDescription": "When masking sensitive data, show the first and last few characters instead of masking completely."
+          "markdownDescription": "%config.maskShowPartial%"
         }
       }
     },
     "commands": [
       {
         "command": "otakClipboard.copyCurrentTab",
-        "title": "Copy Current Tab"
+        "title": "%command.copyCurrentTab%"
       },
       {
         "command": "otakClipboard.copyAllOpenedTabs",
-        "title": "Copy All Opened Tabs"
+        "title": "%command.copyAllOpenedTabs%"
       },
       {
         "command": "otakClipboard.copyFile",
-        "title": "Copy File"
+        "title": "%command.copyFile%"
       },
       {
         "command": "otakClipboard.copyFolder",
-        "title": "Copy Folder Contents"
+        "title": "%command.copyFolder%"
       },
       {
         "command": "otakClipboard.copyFolderRecursive",
-        "title": "Copy All Folder Contents"
+        "title": "%command.copyFolderRecursive%"
       }
     ],
     "menus": {
@@ -179,20 +209,23 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "gen:nls": "node scripts/gen-package-nls.mjs",
+    "compile": "npm run gen:nls && tsc -p ./ && node -e \"require('fs').cpSync('src/i18n/locales', 'out/i18n/locales', {recursive: true})\"",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "package": "vsce package"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "1.90.0",
     "@typescript-eslint/eslint-plugin": "^8.22.0",
     "@typescript-eslint/parser": "^8.22.0",
-    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.6.0",
     "eslint": "^9.26.1",
     "typescript": "^5.7.3"
   },
@@ -200,7 +233,9 @@
     "ignore": "^5.3.2"
   },
   "overrides": {
-    "brace-expansion@1": "1.1.12",
-    "brace-expansion@2": "2.0.2"
+    "brace-expansion@1": "1.1.13",
+    "brace-expansion@2": "2.0.3",
+    "diff": "8.0.3",
+    "serialize-javascript": "7.0.5"
   }
 }

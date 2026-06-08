@@ -66,7 +66,7 @@ otak-clipboard streamlines sharing code with AI assistants by intelligently form
 
 - **Built-in Safeguards**:
   - Character limit: **400,000 chars** (≈100K tokens)
-  - File limit: **200 files** per operation
+  - File limit: **400 files** per operation
   - Intelligent binary file detection:
       - Magic number validation
       - Null byte detection

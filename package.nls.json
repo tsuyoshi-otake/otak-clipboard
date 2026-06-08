@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "Copy All Opened Tabs",
+  "command.copyCurrentTab": "Copy Current Tab",
+  "command.copyFile": "Copy File",
+  "command.copyFolder": "Copy Folder Contents",
+  "command.copyFolderRecursive": "Copy All Folder Contents",
+  "config.binaryDetectionRules": "Rules for binary file detection: nullByteCheck (check for null bytes), controlCharRatio (maximum ratio of control characters), controlCharCheck (enable control character checking).",
+  "config.detectSensitiveData": "Enable detection of sensitive data like API keys, tokens, and passwords. When detected, you'll be prompted to mask the sensitive information.",
+  "config.excludeDirectories": "List of directory names to always exclude from copying.",
+  "config.knownBinaryExtensions": "List of file extensions to always treat as binary files.",
+  "config.knownTextExtensions": "List of file extensions to always treat as text files.",
+  "config.maskShowPartial": "When masking sensitive data, show the first and last few characters instead of masking completely.",
+  "config.maxCharacters": "Maximum number of characters allowed in a single copy operation.",
+  "config.maxFiles": "Maximum number of files allowed in a single copy operation.",
+  "config.sensitiveDataPatterns": "Custom patterns for detecting sensitive data. Each pattern should have a name, regex pattern, and confidence level.",
+  "config.useGitignore": "Consider `.gitignore` settings and exclude matching files from clipboard copy.",
+  "extension.description": "Copy files, folders, and editor tabs to the clipboard as markdown for AI-assisted development workflows."
+}

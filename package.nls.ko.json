@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "열린 모든 탭 복사",
+  "command.copyCurrentTab": "현재 탭 복사",
+  "command.copyFile": "파일 복사",
+  "command.copyFolder": "폴더 내용 복사",
+  "command.copyFolderRecursive": "모든 폴더 내용 복사",
+  "config.binaryDetectionRules": "바이너리 파일 감지 규칙: nullByteCheck(null 바이트 확인), controlCharRatio(제어 문자 최대 비율), controlCharCheck(제어 문자 검사 활성화).",
+  "config.detectSensitiveData": "API 키, 토큰, 비밀번호 같은 민감한 데이터 감지를 활성화합니다. 감지되면 민감한 정보를 마스킹할지 묻습니다.",
+  "config.excludeDirectories": "복사 시 항상 제외할 디렉터리 이름 목록입니다.",
+  "config.knownBinaryExtensions": "항상 바이너리 파일로 처리할 파일 확장자 목록입니다.",
+  "config.knownTextExtensions": "항상 텍스트 파일로 처리할 파일 확장자 목록입니다.",
+  "config.maskShowPartial": "민감한 데이터를 마스킹할 때 완전히 숨기지 않고 앞뒤 일부 문자를 표시합니다.",
+  "config.maxCharacters": "한 번의 복사 작업에서 허용되는 최대 문자 수입니다.",
+  "config.maxFiles": "한 번의 복사 작업에서 허용되는 최대 파일 수입니다.",
+  "config.sensitiveDataPatterns": "민감한 데이터 감지를 위한 사용자 지정 패턴입니다. 각 패턴에는 이름, 정규식 패턴, 신뢰도가 필요합니다.",
+  "config.useGitignore": "`.gitignore` 설정을 고려하여 일치하는 파일을 클립보드 복사에서 제외합니다.",
+  "extension.description": "AI 지원 개발 워크플로를 위해 파일, 폴더, 편집기 탭을 Markdown 형식으로 클립보드에 복사합니다."
+}

@@ -1,0 +1,63 @@
+{
+  "extension.description": "面向 AI 辅助开发流程，将文件、文件夹和编辑器标签页以 Markdown 格式复制到剪贴板。",
+
+  "command.copyCurrentTab": "复制当前标签页",
+  "command.copyAllOpenedTabs": "复制所有已打开标签页",
+  "command.copyFile": "复制文件",
+  "command.copyFolder": "复制文件夹内容",
+  "command.copyFolderRecursive": "复制所有文件夹内容",
+
+  "config.useGitignore": "遵循 `.gitignore` 设置，并从剪贴板复制中排除匹配的文件。",
+  "config.maxCharacters": "单次复制操作允许的最大字符数。",
+  "config.maxFiles": "单次复制操作允许的最大文件数。",
+  "config.excludeDirectories": "复制时始终排除的目录名称列表。",
+  "config.knownTextExtensions": "始终按文本文件处理的文件扩展名列表。",
+  "config.knownBinaryExtensions": "始终按二进制文件处理的文件扩展名列表。",
+  "config.binaryDetectionRules": "二进制文件检测规则: nullByteCheck（检查 null 字节）、controlCharRatio（控制字符最大比例）、controlCharCheck（启用控制字符检查）。",
+  "config.detectSensitiveData": "启用 API 密钥、令牌、密码等敏感数据检测。检测到时会提示你是否遮蔽敏感信息。",
+  "config.sensitiveDataPatterns": "用于检测敏感数据的自定义模式。每个模式都应包含名称、正则表达式和置信度。",
+  "config.maskShowPartial": "遮蔽敏感数据时，显示开头和末尾的少量字符，而不是完全遮蔽。",
+
+  "label.tab": "标签页",
+  "label.tabs": "标签页",
+  "label.file": "文件",
+  "label.files": "文件",
+
+  "confidence.high": "高置信度",
+  "confidence.medium": "中置信度",
+  "confidence.low": "低置信度",
+
+  "action.maskAllSensitiveData": "遮蔽所有敏感数据",
+  "action.maskHighConfidenceOnly": "仅遮蔽高置信度项",
+  "action.reviewEachItem": "逐项检查",
+  "action.continueWithoutMasking": "不遮蔽并继续",
+  "action.cancelOperation": "取消操作",
+  "action.yesContinue": "是，继续",
+  "action.noGoBack": "否，返回",
+  "action.maskThis": "遮蔽此项",
+  "action.keepOriginal": "保留原文",
+  "action.maskAllRemaining": "遮蔽剩余所有项",
+  "action.cancel": "取消",
+
+  "message.copied": "已复制 {count} 个{itemLabel}: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": "，以及另外 {count} 个",
+  "message.maskedStatus": "（敏感数据已遮蔽）",
+  "message.sensitiveDataDetected": "⚠️ 检测到 {count} 个潜在敏感数据项:\n\n",
+  "message.highConfidenceItems": "🔴 高置信度（{count} 项）:\n",
+  "message.mediumConfidenceItems": "\n🟡 中置信度（{count} 项）:\n",
+  "message.lowConfidenceItems": "\n⚪ 低置信度（{count} 项）:\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count} 次\n",
+  "message.confirmCopySensitiveData": "⚠️ 确定要在不遮蔽的情况下复制潜在敏感数据吗？",
+  "message.reviewSensitiveItem": "{type}（{confidence}）\n第 {line} 行: {context}\n值: {value}",
+
+  "warning.fileExcludedByGitignore": "所选文件已被 .gitignore 排除",
+  "warning.noFilesFound": "未找到可复制的文件。",
+
+  "error.noActiveEditor": "未找到活动编辑器。",
+  "error.noOpenEditors": "未找到已打开的编辑器。",
+  "error.contentTooLarge": "内容过大。最大大小约为 {limit} 个字符。\n请减少选择内容后重试。",
+  "error.tooManyFiles": "选择的文件过多。最大限制为 {limit} 个文件。\n请减少选择内容后重试。",
+  "error.readingDirectory": "读取目录时出错: {message}",
+  "error.commandFailed": "otak-clipboard 失败: {message}",
+  "error.operationCancelled": "用户已取消操作"
+}

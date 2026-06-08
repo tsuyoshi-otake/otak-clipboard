@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { FileInfo } from './FileUtils';
+import { getWorkspaceRelativePath } from './WorkspacePathUtils';
 
 export class ClipboardUtils {
     /**
@@ -14,47 +15,51 @@ export class ClipboardUtils {
     /**
      * Convert file contents to markdown format
      */
-    private convertToMarkdown(files: FileInfo[]): string {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath || '';
+    public convertToMarkdown(files: FileInfo[]): string {
+        const chunks: string[] = [];
 
-        return files.map(file => {
-            // 相対パスを取得
-            const relativePath = path.relative(workspaceFolder, file.path);
+        for (const file of files) {
+            chunks.push(this.convertFileToMarkdown(file));
+        }
 
-            const fileName = path.basename(file.path);
-            const fileExtension = path.extname(fileName).slice(1) || 'txt';
+        return chunks.join('\n');
+    }
 
-            if (file.isDirectory) {
-                // Directory entry
-                return [
-                    `# ${relativePath}`,
-                    '',
-                    '```',
-                    file.isEmpty ? '(Empty Directory)' : '(Directory)',
-                    '```',
-                    ''
-                ].join('\n');
-            } else if (file.isBinary) {
-                // Binary file entry
-                return [
-                    `# ${relativePath}`,
-                    '',
-                    '```',
-                    '(Binary File)',
-                    '```',
-                    ''
-                ].join('\n');
-            } else {
-                // Text file entry
-                return [
-                    `# ${relativePath}`,
-                    '',
-                    '```' + fileExtension,
-                    file.content,
-                    '```',
-                    ''
-                ].join('\n');
-            }
-        }).join('\n');
+    private convertFileToMarkdown(file: FileInfo): string {
+        const relativePath = getWorkspaceRelativePath(file.uri ?? file.path);
+        const fileName = path.basename(file.path);
+        const fileExtension = path.extname(fileName).slice(1) || 'txt';
+
+        if (file.isDirectory) {
+            return this.createBlock(relativePath, '', file.isEmpty ? '(Empty Directory)' : '(Directory)');
+        }
+
+        if (file.isBinary) {
+            return this.createBlock(relativePath, '', '(Binary File)');
+        }
+
+        return this.createBlock(relativePath, fileExtension, file.content ?? '');
+    }
+
+    private createBlock(relativePath: string, language: string, content: string): string {
+        const fence = this.createFence(content);
+
+        return [
+            `# ${relativePath}`,
+            '',
+            `${fence}${language}`,
+            content,
+            fence,
+            ''
+        ].join('\n');
+    }
+
+    private createFence(content: string): string {
+        let fence = '```';
+        while (content.includes(fence)) {
+            fence += '`';
+        }
+
+        return fence;
     }
 }

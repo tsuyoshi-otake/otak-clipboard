@@ -2,8 +2,16 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import ignore from 'ignore';
 
-export class GitignoreUtils {
-    private ignoreRules: Map<string, ReturnType<typeof ignore>> = new Map();
+export class GitignoreUtils implements vscode.Disposable {
+    private ignoreRules: Map<string, ReturnType<typeof ignore> | null> = new Map();
+    private readonly watcher: vscode.FileSystemWatcher;
+
+    constructor() {
+        this.watcher = vscode.workspace.createFileSystemWatcher('**/.gitignore');
+        this.watcher.onDidChange(uri => this.invalidateWorkspace(uri));
+        this.watcher.onDidCreate(uri => this.invalidateWorkspace(uri));
+        this.watcher.onDidDelete(uri => this.invalidateWorkspace(uri));
+    }
 
     /**
      * Check if a file is ignored by .gitignore
@@ -20,10 +28,7 @@ export class GitignoreUtils {
                 return false;
             }
 
-            const relativePath = path.relative(
-                workspaceFolder.uri.fsPath,
-                uri.fsPath
-            ).replace(/\\/g, '/');
+            const relativePath = this.getRelativePath(workspaceFolder.uri, uri);
 
             return ig.ignores(relativePath);
         } catch (error) {
@@ -36,27 +41,45 @@ export class GitignoreUtils {
      * Get .gitignore rules with caching
      */
     private async getIgnoreRules(workspaceUri: vscode.Uri): Promise<ReturnType<typeof ignore> | null> {
-        const workspacePath = workspaceUri.fsPath;
-        
-        // Check cache
-        if (this.ignoreRules.has(workspacePath)) {
-            return this.ignoreRules.get(workspacePath)!;
+        const workspaceKey = workspaceUri.toString();
+
+        if (this.ignoreRules.has(workspaceKey)) {
+            return this.ignoreRules.get(workspaceKey) ?? null;
         }
 
         try {
-            const gitignorePath = path.join(workspacePath, '.gitignore');
-            const gitignoreUri = vscode.Uri.file(gitignorePath);
-            
-            const document = await vscode.workspace.openTextDocument(gitignoreUri);
-            const content = document.getText();
+            const gitignoreUri = vscode.Uri.joinPath(workspaceUri, '.gitignore');
+            const content = new TextDecoder().decode(await vscode.workspace.fs.readFile(gitignoreUri));
 
             const ig = ignore().add(content);
-            this.ignoreRules.set(workspacePath, ig);
-            
+            this.ignoreRules.set(workspaceKey, ig);
+
             return ig;
         } catch (error) {
-            // No .gitignore file found or other error
+            this.ignoreRules.set(workspaceKey, null);
             return null;
         }
+    }
+
+    private invalidateWorkspace(uri: vscode.Uri): void {
+        const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+        if (workspaceFolder) {
+            this.ignoreRules.delete(workspaceFolder.uri.toString());
+        } else {
+            this.ignoreRules.clear();
+        }
+    }
+
+    dispose(): void {
+        this.watcher.dispose();
+        this.ignoreRules.clear();
+    }
+
+    private getRelativePath(workspaceUri: vscode.Uri, uri: vscode.Uri): string {
+        if (workspaceUri.scheme === 'file' && uri.scheme === 'file') {
+            return path.relative(workspaceUri.fsPath, uri.fsPath).replace(/\\/g, '/');
+        }
+
+        return path.posix.relative(workspaceUri.path, uri.path);
     }
 }

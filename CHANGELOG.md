@@ -2,9 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-06-08
+### Changed
+- Refactored copy orchestration, file collection, limit checking, and clipboard formatting into smaller responsibilities.
+- Enforced file and character limits during collection to avoid unnecessary directory walks and string joins.
+- Updated development packaging dependencies and regenerated the lockfile for vulnerability remediation.
+
+### Fixed
+- Returned command promises to VS Code and added top-level command error handling.
+- Reused file bytes for binary detection and text decoding to reduce duplicate allocations.
+- Applied `sensitiveDataPatterns` and `maskShowPartial` settings during sensitive data detection and masking.
+- Corrected README and changelog metadata for the current default file limit.
+
 ## [1.0.1] - 2025-04-27
 ### Changed
-- Increased the default value for `otakClipboard.maxFiles` from 50 to 200.
+- Increased the default value for `otakClipboard.maxFiles` from 50 to 400.
 ## [1.0.0] - 2025-03-03
 ### Added
 - Initial release of **otak-clipboard** extension.

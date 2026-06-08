@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "複製所有已開啟分頁",
+  "command.copyCurrentTab": "複製目前分頁",
+  "command.copyFile": "複製檔案",
+  "command.copyFolder": "複製資料夾內容",
+  "command.copyFolderRecursive": "複製所有資料夾內容",
+  "config.binaryDetectionRules": "二進位檔案偵測規則: nullByteCheck（檢查 null 位元組）、controlCharRatio（控制字元最大比例）、controlCharCheck（啟用控制字元檢查）。",
+  "config.detectSensitiveData": "啟用 API 金鑰、權杖、密碼等敏感資料偵測。偵測到時會提示你是否遮蔽敏感資訊。",
+  "config.excludeDirectories": "複製時一律排除的目錄名稱清單。",
+  "config.knownBinaryExtensions": "一律視為二進位檔案的副檔名清單。",
+  "config.knownTextExtensions": "一律視為文字檔案的副檔名清單。",
+  "config.maskShowPartial": "遮蔽敏感資料時，顯示開頭和結尾的少量字元，而不是完全遮蔽。",
+  "config.maxCharacters": "單次複製操作允許的最大字元數。",
+  "config.maxFiles": "單次複製操作允許的最大檔案數。",
+  "config.sensitiveDataPatterns": "用於偵測敏感資料的自訂模式。每個模式都應包含名稱、正規表示式和信賴度。",
+  "config.useGitignore": "遵循 `.gitignore` 設定，並從剪貼簿複製中排除符合的檔案。",
+  "extension.description": "面向 AI 輔助開發流程，將檔案、資料夾和編輯器分頁以 Markdown 格式複製到剪貼簿。"
+}

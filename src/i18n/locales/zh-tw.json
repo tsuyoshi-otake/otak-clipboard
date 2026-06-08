@@ -1,0 +1,63 @@
+{
+  "extension.description": "面向 AI 輔助開發流程，將檔案、資料夾和編輯器分頁以 Markdown 格式複製到剪貼簿。",
+
+  "command.copyCurrentTab": "複製目前分頁",
+  "command.copyAllOpenedTabs": "複製所有已開啟分頁",
+  "command.copyFile": "複製檔案",
+  "command.copyFolder": "複製資料夾內容",
+  "command.copyFolderRecursive": "複製所有資料夾內容",
+
+  "config.useGitignore": "遵循 `.gitignore` 設定，並從剪貼簿複製中排除符合的檔案。",
+  "config.maxCharacters": "單次複製操作允許的最大字元數。",
+  "config.maxFiles": "單次複製操作允許的最大檔案數。",
+  "config.excludeDirectories": "複製時一律排除的目錄名稱清單。",
+  "config.knownTextExtensions": "一律視為文字檔案的副檔名清單。",
+  "config.knownBinaryExtensions": "一律視為二進位檔案的副檔名清單。",
+  "config.binaryDetectionRules": "二進位檔案偵測規則: nullByteCheck（檢查 null 位元組）、controlCharRatio（控制字元最大比例）、controlCharCheck（啟用控制字元檢查）。",
+  "config.detectSensitiveData": "啟用 API 金鑰、權杖、密碼等敏感資料偵測。偵測到時會提示你是否遮蔽敏感資訊。",
+  "config.sensitiveDataPatterns": "用於偵測敏感資料的自訂模式。每個模式都應包含名稱、正規表示式和信賴度。",
+  "config.maskShowPartial": "遮蔽敏感資料時，顯示開頭和結尾的少量字元，而不是完全遮蔽。",
+
+  "label.tab": "分頁",
+  "label.tabs": "分頁",
+  "label.file": "檔案",
+  "label.files": "檔案",
+
+  "confidence.high": "高信賴度",
+  "confidence.medium": "中信賴度",
+  "confidence.low": "低信賴度",
+
+  "action.maskAllSensitiveData": "遮蔽所有敏感資料",
+  "action.maskHighConfidenceOnly": "僅遮蔽高信賴度項目",
+  "action.reviewEachItem": "逐項檢查",
+  "action.continueWithoutMasking": "不遮蔽並繼續",
+  "action.cancelOperation": "取消操作",
+  "action.yesContinue": "是，繼續",
+  "action.noGoBack": "否，返回",
+  "action.maskThis": "遮蔽此項",
+  "action.keepOriginal": "保留原文",
+  "action.maskAllRemaining": "遮蔽剩餘所有項目",
+  "action.cancel": "取消",
+
+  "message.copied": "已複製 {count} 個{itemLabel}: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": "，以及另外 {count} 個",
+  "message.maskedStatus": "（敏感資料已遮蔽）",
+  "message.sensitiveDataDetected": "⚠️ 偵測到 {count} 個潛在敏感資料項目:\n\n",
+  "message.highConfidenceItems": "🔴 高信賴度（{count} 項）:\n",
+  "message.mediumConfidenceItems": "\n🟡 中信賴度（{count} 項）:\n",
+  "message.lowConfidenceItems": "\n⚪ 低信賴度（{count} 項）:\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count} 次\n",
+  "message.confirmCopySensitiveData": "⚠️ 確定要在不遮蔽的情況下複製潛在敏感資料嗎？",
+  "message.reviewSensitiveItem": "{type}（{confidence}）\n第 {line} 行: {context}\n值: {value}",
+
+  "warning.fileExcludedByGitignore": "所選檔案已被 .gitignore 排除",
+  "warning.noFilesFound": "找不到可複製的檔案。",
+
+  "error.noActiveEditor": "找不到使用中的編輯器。",
+  "error.noOpenEditors": "找不到已開啟的編輯器。",
+  "error.contentTooLarge": "內容過大。最大大小約為 {limit} 個字元。\n請減少選取內容後再試一次。",
+  "error.tooManyFiles": "選取的檔案過多。最大限制為 {limit} 個檔案。\n請減少選取內容後再試一次。",
+  "error.readingDirectory": "讀取目錄時發生錯誤: {message}",
+  "error.commandFailed": "otak-clipboard 失敗: {message}",
+  "error.operationCancelled": "使用者已取消操作"
+}

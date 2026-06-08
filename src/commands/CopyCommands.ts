@@ -1,312 +1,219 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { ClipboardUtils } from '../utils/ClipboardUtils';
 import { FileUtils, FileInfo } from '../utils/FileUtils';
-import { LimitChecker } from '../utils/LimitChecker';
+import { ContentBudget, LimitChecker } from '../utils/LimitChecker';
 import { GitignoreUtils } from '../utils/GitignoreUtils';
-import { SensitiveDataDetector } from '../utils/SensitiveDataDetector';
+import { SensitiveDataDetector, USER_CANCELLED_ERROR_MESSAGE } from '../utils/SensitiveDataDetector';
+import { getWorkspaceRelativePath } from '../utils/WorkspacePathUtils';
+import { I18nManager } from '../i18n/I18nManager';
 
-export class CopyCommands {
+interface SensitiveProcessingResult {
+    files: FileInfo[];
+    masked: boolean;
+}
+
+type CopiedItemKind = 'tab' | 'file';
+
+export class CopyCommands implements vscode.Disposable {
     private readonly clipboardUtils: ClipboardUtils;
     private readonly fileUtils: FileUtils;
     private readonly limitChecker: LimitChecker;
     private readonly gitignoreUtils: GitignoreUtils;
     private readonly sensitiveDataDetector: SensitiveDataDetector;
+    private readonly i18n: I18nManager;
 
-    constructor() {
-        this.clipboardUtils = new ClipboardUtils();
-        this.fileUtils = new FileUtils();
-        this.limitChecker = new LimitChecker();
-        this.gitignoreUtils = new GitignoreUtils();
-        this.sensitiveDataDetector = new SensitiveDataDetector();
+    constructor(
+        clipboardUtils?: ClipboardUtils,
+        gitignoreUtils?: GitignoreUtils,
+        fileUtils?: FileUtils,
+        limitChecker?: LimitChecker,
+        sensitiveDataDetector?: SensitiveDataDetector
+    ) {
+        this.clipboardUtils = clipboardUtils ?? new ClipboardUtils();
+        this.gitignoreUtils = gitignoreUtils ?? new GitignoreUtils();
+        this.fileUtils = fileUtils ?? new FileUtils(this.gitignoreUtils);
+        this.limitChecker = limitChecker ?? new LimitChecker();
+        this.sensitiveDataDetector = sensitiveDataDetector ?? new SensitiveDataDetector();
+        this.i18n = I18nManager.getInstance();
     }
 
-    /**
-     * Convert file path to workspace relative path
-     */
-    private getRelativePath(filePath: string): string {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        return workspaceFolder ? path.relative(workspaceFolder.uri.fsPath, filePath) : path.basename(filePath);
-    }
-
-    /**
-     * Show notification that auto-dismisses after 5 seconds
-     */
-    private async showTimedMessage(message: string) {
-        await vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: message,
-                cancellable: false
-            },
-            async () => {
-                await new Promise(resolve => setTimeout(resolve, 5000));
-            }
-        );
-    }
-
-    /**
-     * Copy content of current active editor tab
-     */
     async copyCurrentTab(): Promise<void> {
         const editor = vscode.window.activeTextEditor;
         if (!editor) {
-            vscode.window.showErrorMessage('No active editor found.');
+            vscode.window.showErrorMessage(this.i18n.t('error.noActiveEditor'));
             return;
         }
 
+        const budget = this.limitChecker.createBudget();
         const text = editor.document.getText();
-        if (!this.limitChecker.checkContentSize(text)) {
-            return;
-        }
+        budget.addFile();
+        budget.addContent(text);
 
-        // Check for sensitive data if enabled
-        const config = vscode.workspace.getConfiguration('otakClipboard');
-        const enableSensitiveDetection = config.get('detectSensitiveData', true);
-
-        let finalText = text;
-        let maskedStatus = '';
-
-        if (enableSensitiveDetection) {
-            try {
-                const matches = await this.sensitiveDataDetector.detectSensitiveData(text, editor.document.fileName);
-                if (matches.length > 0) {
-                    const result = await this.sensitiveDataDetector.promptUserForMasking(matches, text);
-                    finalText = result.content;
-                    if (result.masked) {
-                        maskedStatus = ' (sensitive data masked)';
-                    }
-                }
-            } catch (error: any) {
-                if (error.message === 'Operation cancelled by user') {
-                    return;
-                }
-                throw error;
-            }
-        }
-
-        await this.clipboardUtils.copyToClipboard([{
-            path: editor.document.fileName,
-            content: finalText,
+        await this.copyPreparedFiles([{
+            path: editor.document.uri.fsPath,
+            uri: editor.document.uri,
+            content: text,
             isBinary: false
-        }]);
-
-        const relativePath = this.getRelativePath(editor.document.fileName);
-        await this.showTimedMessage(
-            `Copied "${relativePath}" to clipboard${maskedStatus}.`
-        );
+        }], 'tab');
     }
 
-    /**
-     * Copy content of all opened tabs
-     */
     async copyAllOpenedTabs(): Promise<void> {
-        // Get all opened tabs
         const allTabs = vscode.window.tabGroups.all
-            .map(group => group.tabs)
-            .flat()
+            .flatMap(group => group.tabs)
             .filter(tab => tab.input instanceof vscode.TabInputText)
             .map(tab => (tab.input as vscode.TabInputText).uri);
 
         if (allTabs.length === 0) {
-            vscode.window.showErrorMessage('No open editors found.');
+            vscode.window.showErrorMessage(this.i18n.t('error.noOpenEditors'));
             return;
         }
 
-        const fileContents: FileInfo[] = [];
+        const budget = this.limitChecker.createBudget();
+        const files: FileInfo[] = [];
+
         for (const uri of allTabs) {
             try {
                 const document = await vscode.workspace.openTextDocument(uri);
-                fileContents.push({
+                const content = document.getText();
+                budget.addFile();
+                budget.addContent(content);
+                files.push({
                     path: uri.fsPath,
-                    content: document.getText(),
+                    uri,
+                    content,
                     isBinary: false
                 });
             } catch (error) {
-                console.error(`Failed to read file: ${uri.fsPath}`, error);
-                continue;
-            }
-        }
-
-        if (!this.limitChecker.checkFilesCount(fileContents.length)) {
-            return;
-        }
-
-        const totalContent = fileContents.map(f => f.content).join('\n');
-        if (!this.limitChecker.checkContentSize(totalContent)) {
-            return;
-        }
-
-        // Check for sensitive data if enabled
-        const config = vscode.workspace.getConfiguration('otakClipboard');
-        const enableSensitiveDetection = config.get('detectSensitiveData', true);
-        let maskedStatus = '';
-
-        if (enableSensitiveDetection) {
-            const processedContents: FileInfo[] = [];
-            for (const file of fileContents) {
-                try {
-                    const matches = await this.sensitiveDataDetector.detectSensitiveData(file.content || '', file.path);
-                    if (matches.length > 0) {
-                        const result = await this.sensitiveDataDetector.promptUserForMasking(matches, file.content || '');
-                        processedContents.push({
-                            ...file,
-                            content: result.content
-                        });
-                        if (result.masked) {
-                            maskedStatus = ' (sensitive data masked)';
-                        }
-                    } else {
-                        processedContents.push(file);
-                    }
-                } catch (error: any) {
-                    if (error.message === 'Operation cancelled by user') {
-                        return;
-                    }
-                    throw error;
+                if (this.limitChecker.reportLimitError(error)) {
+                    return;
                 }
+                console.error(`Failed to read file: ${uri.toString()}`, error);
             }
-            await this.clipboardUtils.copyToClipboard(processedContents);
-        } else {
-            await this.clipboardUtils.copyToClipboard(fileContents);
         }
 
-        const relativePaths = fileContents.map(f => this.getRelativePath(f.path));
-        const fileList = relativePaths.join(', ');
-        await this.showTimedMessage(
-            `Copied ${fileContents.length} tab(s): ${fileList}${maskedStatus}`
-        );
+        await this.copyPreparedFiles(files, 'tab');
     }
 
-    /**
-     * Copy content of specified file
-     */
     async copyFile(uri: vscode.Uri): Promise<void> {
         const config = vscode.workspace.getConfiguration('otakClipboard');
         const useGitignore = config.get('useGitignore', true);
         if (useGitignore && await this.gitignoreUtils.isIgnored(uri)) {
-            vscode.window.showWarningMessage('Selected file is excluded by .gitignore');
+            vscode.window.showWarningMessage(this.i18n.t('warning.fileExcludedByGitignore'));
             return;
         }
 
-        const content = await this.fileUtils.readFile(uri);
-        if (!this.limitChecker.checkContentSize(content)) {
+        try {
+            const budget = this.limitChecker.createBudget();
+            const file = await this.fileUtils.readSingleFile(uri, budget);
+            await this.copyPreparedFiles([file], 'file');
+        } catch (error) {
+            if (!this.limitChecker.reportLimitError(error)) {
+                throw error;
+            }
+        }
+    }
+
+    async copyFolder(uri: vscode.Uri): Promise<void> {
+        await this.copyFolderInternal(uri, false);
+    }
+
+    async copyFolderRecursive(uri: vscode.Uri): Promise<void> {
+        await this.copyFolderInternal(uri, true);
+    }
+
+    dispose(): void {
+        this.gitignoreUtils.dispose();
+    }
+
+    private async copyFolderInternal(uri: vscode.Uri, recursive: boolean): Promise<void> {
+        try {
+            const budget = this.limitChecker.createBudget();
+            const files = await this.fileUtils.readFilesInDirectory(uri, recursive, budget);
+            await this.copyPreparedFiles(files, 'file');
+        } catch (error) {
+            if (!this.limitChecker.reportLimitError(error)) {
+                throw error;
+            }
+        }
+    }
+
+    private async copyPreparedFiles(files: FileInfo[], itemKind: CopiedItemKind): Promise<void> {
+        if (files.length === 0) {
+            vscode.window.showWarningMessage(this.i18n.t('warning.noFilesFound'));
             return;
         }
 
-        // Check for sensitive data if enabled
+        const processingResult = await this.processSensitiveData(files);
+        if (processingResult.files.length === 0) {
+            return;
+        }
+
+        await this.clipboardUtils.copyToClipboard(processingResult.files);
+
+        vscode.window.showInformationMessage(
+            this.createCopiedMessage(files, itemKind, processingResult.masked)
+        );
+    }
+
+    private async processSensitiveData(files: FileInfo[]): Promise<SensitiveProcessingResult> {
+        const config = vscode.workspace.getConfiguration('otakClipboard');
         const enableSensitiveDetection = config.get('detectSensitiveData', true);
-        let finalContent = content;
-        let maskedStatus = '';
+        if (!enableSensitiveDetection) {
+            return { files, masked: false };
+        }
 
-        if (enableSensitiveDetection) {
+        const processedFiles: FileInfo[] = [];
+        let masked = false;
+
+        for (const file of files) {
+            if (file.isBinary || file.isDirectory || !file.content) {
+                processedFiles.push(file);
+                continue;
+            }
+
             try {
-                const matches = await this.sensitiveDataDetector.detectSensitiveData(content, uri.fsPath);
-                if (matches.length > 0) {
-                    const result = await this.sensitiveDataDetector.promptUserForMasking(matches, content);
-                    finalContent = result.content;
-                    if (result.masked) {
-                        maskedStatus = ' (sensitive data masked)';
-                    }
+                const matches = await this.sensitiveDataDetector.detectSensitiveData(file.content, file.path);
+                if (matches.length === 0) {
+                    processedFiles.push(file);
+                    continue;
                 }
-            } catch (error: any) {
-                if (error.message === 'Operation cancelled by user') {
-                    return;
+
+                const result = await this.sensitiveDataDetector.promptUserForMasking(matches, file.content);
+                processedFiles.push({
+                    ...file,
+                    content: result.content
+                });
+                masked = masked || result.masked;
+            } catch (error) {
+                if (error instanceof Error && error.message === USER_CANCELLED_ERROR_MESSAGE) {
+                    return { files: [], masked: false };
                 }
                 throw error;
             }
         }
 
-        await this.clipboardUtils.copyToClipboard([{
-            path: uri.fsPath,
-            content: finalContent,
-            isBinary: false
-        }]);
-
-        const relativePath = this.getRelativePath(uri.fsPath);
-        await this.showTimedMessage(
-            `Copied "${relativePath}" to clipboard${maskedStatus}.`
-        );
+        return { files: processedFiles, masked };
     }
 
-    /**
-     * Copy files in directory (non-recursive)
-     */
-    async copyFolder(uri: vscode.Uri): Promise<void> {
-        const files = await this.fileUtils.readFilesInDirectory(uri, false);
-        await this.copyFiles(files);
-    }
+    private createCopiedMessage(files: FileInfo[], itemKind: CopiedItemKind, masked: boolean): string {
+        const copiedFiles = files.filter(file => !file.isDirectory);
+        const messageFiles = copiedFiles.length > 0 ? copiedFiles : files;
+        const count = messageFiles.length;
+        const paths = messageFiles.slice(0, 5).map(file => getWorkspaceRelativePath(file.uri ?? file.path));
+        const remainingCount = Math.max(0, count - paths.length);
+        const itemLabelKey = count === 1 ? `label.${itemKind}` : `label.${itemKind}s`;
+        const itemLabel = this.i18n.t(itemLabelKey);
+        const suffix = remainingCount > 0
+            ? this.i18n.t('message.remainingCount', { count: String(remainingCount) })
+            : '';
+        const maskedStatus = masked ? this.i18n.t('message.maskedStatus') : '';
 
-    /**
-     * Copy all files in directory (recursive)
-     */
-    async copyFolderRecursive(uri: vscode.Uri): Promise<void> {
-        const files = await this.fileUtils.readFilesInDirectory(uri, true);
-        await this.copyFiles(files);
-    }
-
-    /**
-     * Process multiple files copy operation
-     */
-    private async copyFiles(files: FileInfo[]): Promise<void> {
-        if (files.length === 0) {
-            vscode.window.showWarningMessage('No files found to copy.');
-            return;
-        }
-
-        if (!this.limitChecker.checkFilesCount(files.length)) {
-            return;
-        }
-
-        // Check size only for text content
-        const textContent = files.filter(f => !f.isBinary).map(f => f.content).join('\n');
-        if (!this.limitChecker.checkContentSize(textContent)) {
-            return;
-        }
-
-        // Check for sensitive data if enabled
-        const config = vscode.workspace.getConfiguration('otakClipboard');
-        const enableSensitiveDetection = config.get('detectSensitiveData', true);
-        let maskedStatus = '';
-
-        if (enableSensitiveDetection) {
-            const processedFiles: FileInfo[] = [];
-            for (const file of files) {
-                if (file.isBinary) {
-                    processedFiles.push(file);
-                    continue;
-                }
-
-                try {
-                    const matches = await this.sensitiveDataDetector.detectSensitiveData(file.content || '', file.path);
-                    if (matches.length > 0) {
-                        const result = await this.sensitiveDataDetector.promptUserForMasking(matches, file.content || '');
-                        processedFiles.push({
-                            ...file,
-                            content: result.content
-                        });
-                        if (result.masked) {
-                            maskedStatus = ' (sensitive data masked)';
-                        }
-                    } else {
-                        processedFiles.push(file);
-                    }
-                } catch (error: any) {
-                    if (error.message === 'Operation cancelled by user') {
-                        return;
-                    }
-                    throw error;
-                }
-            }
-            await this.clipboardUtils.copyToClipboard(processedFiles);
-        } else {
-            await this.clipboardUtils.copyToClipboard(files);
-        }
-
-        const relativePaths = files.map(f => this.getRelativePath(f.path));
-        const fileList = relativePaths.join(', ');
-        await this.showTimedMessage(
-            `Copied ${files.length} file(s): ${fileList}${maskedStatus}`
-        );
+        return this.i18n.t('message.copied', {
+            count: String(count),
+            itemLabel,
+            paths: paths.join(', '),
+            suffix,
+            maskedStatus
+        });
     }
 }

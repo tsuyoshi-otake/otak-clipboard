@@ -1,7 +1,12 @@
 .vscode/**
 .vscode-test/**
 src/**
+scripts/**
+out/test/**
 .gitignore
+.clinerules-code
+AGENTS.md
+package-lock.json
 .yarnrc
 vsc-extension-quickstart.md
 **/tsconfig.json

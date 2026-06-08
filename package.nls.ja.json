@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "開いているすべてのタブをコピー",
+  "command.copyCurrentTab": "現在のタブをコピー",
+  "command.copyFile": "ファイルをコピー",
+  "command.copyFolder": "フォルダー内容をコピー",
+  "command.copyFolderRecursive": "すべてのフォルダー内容をコピー",
+  "config.binaryDetectionRules": "バイナリファイル検出ルール: nullByteCheck（nullバイト確認）、controlCharRatio（制御文字の最大比率）、controlCharCheck（制御文字チェックの有効化）。",
+  "config.detectSensitiveData": "APIキー、トークン、パスワードなどの機密データ検出を有効にします。検出時は機密情報をマスクするか確認します。",
+  "config.excludeDirectories": "コピー時に常に除外するディレクトリ名の一覧。",
+  "config.knownBinaryExtensions": "常にバイナリファイルとして扱うファイル拡張子の一覧。",
+  "config.knownTextExtensions": "常にテキストファイルとして扱うファイル拡張子の一覧。",
+  "config.maskShowPartial": "機密データをマスクする際、完全に隠す代わりに先頭と末尾の数文字を表示します。",
+  "config.maxCharacters": "1回のコピー操作で許可する最大文字数。",
+  "config.maxFiles": "1回のコピー操作で許可する最大ファイル数。",
+  "config.sensitiveDataPatterns": "機密データ検出用のカスタムパターン。各パターンには名前、正規表現、信頼度を設定してください。",
+  "config.useGitignore": "`.gitignore` 設定を考慮し、一致するファイルをクリップボードコピーから除外します。",
+  "extension.description": "AI支援開発ワークフロー向けに、ファイル、フォルダー、エディタータブをMarkdown形式でクリップボードへコピーします。"
+}

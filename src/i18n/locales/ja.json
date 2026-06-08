@@ -1,0 +1,63 @@
+{
+  "extension.description": "AI支援開発ワークフロー向けに、ファイル、フォルダー、エディタータブをMarkdown形式でクリップボードへコピーします。",
+
+  "command.copyCurrentTab": "現在のタブをコピー",
+  "command.copyAllOpenedTabs": "開いているすべてのタブをコピー",
+  "command.copyFile": "ファイルをコピー",
+  "command.copyFolder": "フォルダー内容をコピー",
+  "command.copyFolderRecursive": "すべてのフォルダー内容をコピー",
+
+  "config.useGitignore": "`.gitignore` 設定を考慮し、一致するファイルをクリップボードコピーから除外します。",
+  "config.maxCharacters": "1回のコピー操作で許可する最大文字数。",
+  "config.maxFiles": "1回のコピー操作で許可する最大ファイル数。",
+  "config.excludeDirectories": "コピー時に常に除外するディレクトリ名の一覧。",
+  "config.knownTextExtensions": "常にテキストファイルとして扱うファイル拡張子の一覧。",
+  "config.knownBinaryExtensions": "常にバイナリファイルとして扱うファイル拡張子の一覧。",
+  "config.binaryDetectionRules": "バイナリファイル検出ルール: nullByteCheck（nullバイト確認）、controlCharRatio（制御文字の最大比率）、controlCharCheck（制御文字チェックの有効化）。",
+  "config.detectSensitiveData": "APIキー、トークン、パスワードなどの機密データ検出を有効にします。検出時は機密情報をマスクするか確認します。",
+  "config.sensitiveDataPatterns": "機密データ検出用のカスタムパターン。各パターンには名前、正規表現、信頼度を設定してください。",
+  "config.maskShowPartial": "機密データをマスクする際、完全に隠す代わりに先頭と末尾の数文字を表示します。",
+
+  "label.tab": "タブ",
+  "label.tabs": "タブ",
+  "label.file": "ファイル",
+  "label.files": "ファイル",
+
+  "confidence.high": "高信頼度",
+  "confidence.medium": "中信頼度",
+  "confidence.low": "低信頼度",
+
+  "action.maskAllSensitiveData": "すべての機密データをマスク",
+  "action.maskHighConfidenceOnly": "高信頼度のみマスク",
+  "action.reviewEachItem": "各項目を確認",
+  "action.continueWithoutMasking": "マスクせず続行",
+  "action.cancelOperation": "操作をキャンセル",
+  "action.yesContinue": "はい、続行",
+  "action.noGoBack": "いいえ、戻る",
+  "action.maskThis": "これをマスク",
+  "action.keepOriginal": "元のままにする",
+  "action.maskAllRemaining": "残りをすべてマスク",
+  "action.cancel": "キャンセル",
+
+  "message.copied": "{count}件の{itemLabel}をコピーしました: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": "、ほか{count}件",
+  "message.maskedStatus": "（機密データはマスク済み）",
+  "message.sensitiveDataDetected": "⚠️ 機密データの可能性がある項目を{count}件検出しました:\n\n",
+  "message.highConfidenceItems": "🔴 高信頼度（{count}件）:\n",
+  "message.mediumConfidenceItems": "\n🟡 中信頼度（{count}件）:\n",
+  "message.lowConfidenceItems": "\n⚪ 低信頼度（{count}件）:\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count}件\n",
+  "message.confirmCopySensitiveData": "⚠️ 機密データの可能性がある内容をマスクせずにコピーしてもよろしいですか？",
+  "message.reviewSensitiveItem": "{type}（{confidence}）\n行 {line}: {context}\n値: {value}",
+
+  "warning.fileExcludedByGitignore": "選択したファイルは .gitignore により除外されています",
+  "warning.noFilesFound": "コピーするファイルが見つかりませんでした。",
+
+  "error.noActiveEditor": "アクティブなエディターが見つかりません。",
+  "error.noOpenEditors": "開いているエディターが見つかりません。",
+  "error.contentTooLarge": "コンテンツが大きすぎます。最大サイズは約{limit}文字です。\n選択範囲を減らしてからもう一度お試しください。",
+  "error.tooManyFiles": "選択したファイルが多すぎます。最大{limit}ファイルまでです。\n選択範囲を減らしてからもう一度お試しください。",
+  "error.readingDirectory": "ディレクトリの読み取り中にエラーが発生しました: {message}",
+  "error.commandFailed": "otak-clipboard に失敗しました: {message}",
+  "error.operationCancelled": "ユーザーにより操作がキャンセルされました"
+}

@@ -1,0 +1,63 @@
+{
+  "extension.description": "AI 지원 개발 워크플로를 위해 파일, 폴더, 편집기 탭을 Markdown 형식으로 클립보드에 복사합니다.",
+
+  "command.copyCurrentTab": "현재 탭 복사",
+  "command.copyAllOpenedTabs": "열린 모든 탭 복사",
+  "command.copyFile": "파일 복사",
+  "command.copyFolder": "폴더 내용 복사",
+  "command.copyFolderRecursive": "모든 폴더 내용 복사",
+
+  "config.useGitignore": "`.gitignore` 설정을 고려하여 일치하는 파일을 클립보드 복사에서 제외합니다.",
+  "config.maxCharacters": "한 번의 복사 작업에서 허용되는 최대 문자 수입니다.",
+  "config.maxFiles": "한 번의 복사 작업에서 허용되는 최대 파일 수입니다.",
+  "config.excludeDirectories": "복사 시 항상 제외할 디렉터리 이름 목록입니다.",
+  "config.knownTextExtensions": "항상 텍스트 파일로 처리할 파일 확장자 목록입니다.",
+  "config.knownBinaryExtensions": "항상 바이너리 파일로 처리할 파일 확장자 목록입니다.",
+  "config.binaryDetectionRules": "바이너리 파일 감지 규칙: nullByteCheck(null 바이트 확인), controlCharRatio(제어 문자 최대 비율), controlCharCheck(제어 문자 검사 활성화).",
+  "config.detectSensitiveData": "API 키, 토큰, 비밀번호 같은 민감한 데이터 감지를 활성화합니다. 감지되면 민감한 정보를 마스킹할지 묻습니다.",
+  "config.sensitiveDataPatterns": "민감한 데이터 감지를 위한 사용자 지정 패턴입니다. 각 패턴에는 이름, 정규식 패턴, 신뢰도가 필요합니다.",
+  "config.maskShowPartial": "민감한 데이터를 마스킹할 때 완전히 숨기지 않고 앞뒤 일부 문자를 표시합니다.",
+
+  "label.tab": "탭",
+  "label.tabs": "탭",
+  "label.file": "파일",
+  "label.files": "파일",
+
+  "confidence.high": "높은 신뢰도",
+  "confidence.medium": "중간 신뢰도",
+  "confidence.low": "낮은 신뢰도",
+
+  "action.maskAllSensitiveData": "모든 민감한 데이터 마스킹",
+  "action.maskHighConfidenceOnly": "높은 신뢰도만 마스킹",
+  "action.reviewEachItem": "각 항목 검토",
+  "action.continueWithoutMasking": "마스킹 없이 계속",
+  "action.cancelOperation": "작업 취소",
+  "action.yesContinue": "예, 계속",
+  "action.noGoBack": "아니요, 돌아가기",
+  "action.maskThis": "이 항목 마스킹",
+  "action.keepOriginal": "원본 유지",
+  "action.maskAllRemaining": "남은 항목 모두 마스킹",
+  "action.cancel": "취소",
+
+  "message.copied": "{count}개 {itemLabel} 복사됨: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": ", 외 {count}개 더",
+  "message.maskedStatus": " (민감한 데이터 마스킹됨)",
+  "message.sensitiveDataDetected": "⚠️ 잠재적인 민감한 데이터 항목 {count}개를 감지했습니다:\n\n",
+  "message.highConfidenceItems": "🔴 높은 신뢰도({count}개 항목):\n",
+  "message.mediumConfidenceItems": "\n🟡 중간 신뢰도({count}개 항목):\n",
+  "message.lowConfidenceItems": "\n⚪ 낮은 신뢰도({count}개 항목):\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count}회\n",
+  "message.confirmCopySensitiveData": "⚠️ 잠재적인 민감한 데이터를 마스킹하지 않고 복사하시겠습니까?",
+  "message.reviewSensitiveItem": "{type}({confidence})\n{line}행: {context}\n값: {value}",
+
+  "warning.fileExcludedByGitignore": "선택한 파일은 .gitignore에 의해 제외되었습니다",
+  "warning.noFilesFound": "복사할 파일을 찾을 수 없습니다.",
+
+  "error.noActiveEditor": "활성 편집기를 찾을 수 없습니다.",
+  "error.noOpenEditors": "열린 편집기를 찾을 수 없습니다.",
+  "error.contentTooLarge": "콘텐츠가 너무 큽니다. 최대 크기는 약 {limit}자입니다.\n선택 범위를 줄이고 다시 시도하세요.",
+  "error.tooManyFiles": "선택한 파일이 너무 많습니다. 최대 {limit}개 파일까지 허용됩니다.\n선택 범위를 줄이고 다시 시도하세요.",
+  "error.readingDirectory": "디렉터리를 읽는 중 오류가 발생했습니다: {message}",
+  "error.commandFailed": "otak-clipboard 실패: {message}",
+  "error.operationCancelled": "사용자가 작업을 취소했습니다"
+}

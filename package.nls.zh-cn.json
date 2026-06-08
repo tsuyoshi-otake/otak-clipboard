@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "复制所有已打开标签页",
+  "command.copyCurrentTab": "复制当前标签页",
+  "command.copyFile": "复制文件",
+  "command.copyFolder": "复制文件夹内容",
+  "command.copyFolderRecursive": "复制所有文件夹内容",
+  "config.binaryDetectionRules": "二进制文件检测规则: nullByteCheck（检查 null 字节）、controlCharRatio（控制字符最大比例）、controlCharCheck（启用控制字符检查）。",
+  "config.detectSensitiveData": "启用 API 密钥、令牌、密码等敏感数据检测。检测到时会提示你是否遮蔽敏感信息。",
+  "config.excludeDirectories": "复制时始终排除的目录名称列表。",
+  "config.knownBinaryExtensions": "始终按二进制文件处理的文件扩展名列表。",
+  "config.knownTextExtensions": "始终按文本文件处理的文件扩展名列表。",
+  "config.maskShowPartial": "遮蔽敏感数据时，显示开头和末尾的少量字符，而不是完全遮蔽。",
+  "config.maxCharacters": "单次复制操作允许的最大字符数。",
+  "config.maxFiles": "单次复制操作允许的最大文件数。",
+  "config.sensitiveDataPatterns": "用于检测敏感数据的自定义模式。每个模式都应包含名称、正则表达式和置信度。",
+  "config.useGitignore": "遵循 `.gitignore` 设置，并从剪贴板复制中排除匹配的文件。",
+  "extension.description": "面向 AI 辅助开发流程，将文件、文件夹和编辑器标签页以 Markdown 格式复制到剪贴板。"
+}

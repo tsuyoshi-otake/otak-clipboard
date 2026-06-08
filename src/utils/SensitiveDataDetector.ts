@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import { I18nManager } from '../i18n/I18nManager';
+
+export const USER_CANCELLED_ERROR_MESSAGE = 'Operation cancelled by user';
 
 export interface SensitiveDataMatch {
     type: string;
@@ -15,8 +18,19 @@ export interface MaskingOption {
     showPartial?: boolean;
 }
 
+interface SensitiveDataPattern {
+    regex: RegExp;
+    confidence: 'high' | 'medium' | 'low';
+}
+
+interface CustomSensitiveDataPattern {
+    name: string;
+    pattern: string;
+    confidence: 'high' | 'medium' | 'low';
+}
+
 export class SensitiveDataDetector {
-    private patterns: Map<string, { regex: RegExp; confidence: 'high' | 'medium' | 'low' }>;
+    private patterns: Map<string, SensitiveDataPattern>;
 
     constructor() {
         this.patterns = new Map([
@@ -155,18 +169,20 @@ export class SensitiveDataDetector {
     public async detectSensitiveData(content: string, filePath: string): Promise<SensitiveDataMatch[]> {
         const matches: SensitiveDataMatch[] = [];
         const lines = content.split('\n');
+        const patterns = this.getConfiguredPatterns();
+        const normalizedPath = filePath.replace(/\\/g, '/');
 
         // Skip detection for certain file types
         const skipExtensions = ['.md', '.txt', '.log', '.lock'];
-        if (skipExtensions.some(ext => filePath.endsWith(ext))) {
+        if (skipExtensions.some(ext => normalizedPath.endsWith(ext))) {
             return matches;
         }
 
         // Check if it's likely a test/example file
-        const isTestFile = /\.(test|spec|example|sample)\./i.test(filePath) ||
-                          filePath.includes('/test/') ||
-                          filePath.includes('/tests/') ||
-                          filePath.includes('/examples/');
+        const isTestFile = /\.(test|spec|example|sample)\./i.test(normalizedPath) ||
+                          normalizedPath.includes('/test/') ||
+                          normalizedPath.includes('/tests/') ||
+                          normalizedPath.includes('/examples/');
 
         lines.forEach((line, lineIndex) => {
             // Skip comments (basic implementation - could be improved)
@@ -175,7 +191,7 @@ export class SensitiveDataDetector {
                             line.trim().startsWith('*') ||
                             line.trim().startsWith('<!--');
 
-            this.patterns.forEach((patternInfo, type) => {
+            patterns.forEach((patternInfo, type) => {
                 const regex = new RegExp(patternInfo.regex);
                 let match;
 
@@ -212,6 +228,33 @@ export class SensitiveDataDetector {
         });
 
         return matches;
+    }
+
+    private getConfiguredPatterns(): Map<string, SensitiveDataPattern> {
+        const patterns = new Map(this.patterns);
+        const config = vscode.workspace.getConfiguration('otakClipboard');
+        const customPatterns = config.get<CustomSensitiveDataPattern[]>('sensitiveDataPatterns', []);
+
+        for (const customPattern of customPatterns) {
+            if (!customPattern.name || !customPattern.pattern || !customPattern.confidence) {
+                continue;
+            }
+
+            try {
+                patterns.set(customPattern.name, {
+                    regex: new RegExp(customPattern.pattern, 'gi'),
+                    confidence: customPattern.confidence
+                });
+            } catch (error) {
+                console.error(`Invalid sensitive data pattern "${customPattern.name}":`, error);
+            }
+        }
+
+        return patterns;
+    }
+
+    private getMaskShowPartial(): boolean {
+        return vscode.workspace.getConfiguration('otakClipboard').get('maskShowPartial', true);
     }
 
     private isLikelyFakeValue(value: string): boolean {
@@ -251,6 +294,8 @@ export class SensitiveDataDetector {
         if (matches.length === 0) {
             return { content, masked: false };
         }
+        const showPartial = this.getMaskShowPartial();
+        const i18n = I18nManager.getInstance();
 
         // Group matches by confidence
         const highConfidence = matches.filter(m => m.confidence === 'high');
@@ -258,72 +303,85 @@ export class SensitiveDataDetector {
         const lowConfidence = matches.filter(m => m.confidence === 'low');
 
         // Build message
-        let message = `⚠️ Detected ${matches.length} potential sensitive data items:\n\n`;
+        let message = i18n.t('message.sensitiveDataDetected', { count: String(matches.length) });
 
         if (highConfidence.length > 0) {
-            message += `🔴 High confidence (${highConfidence.length} items):\n`;
+            message += i18n.t('message.highConfidenceItems', { count: String(highConfidence.length) });
             const grouped = this.groupByType(highConfidence);
             for (const [type, items] of Object.entries(grouped)) {
-                message += `  • ${type}: ${items.length} occurrence(s)\n`;
+                message += i18n.t('message.sensitiveDataTypeCount', {
+                    type,
+                    count: String(items.length)
+                });
             }
         }
 
         if (mediumConfidence.length > 0) {
-            message += `\n🟡 Medium confidence (${mediumConfidence.length} items):\n`;
+            message += i18n.t('message.mediumConfidenceItems', { count: String(mediumConfidence.length) });
             const grouped = this.groupByType(mediumConfidence);
             for (const [type, items] of Object.entries(grouped)) {
-                message += `  • ${type}: ${items.length} occurrence(s)\n`;
+                message += i18n.t('message.sensitiveDataTypeCount', {
+                    type,
+                    count: String(items.length)
+                });
             }
         }
 
         if (lowConfidence.length > 0) {
-            message += `\n⚪ Low confidence (${lowConfidence.length} items):\n`;
+            message += i18n.t('message.lowConfidenceItems', { count: String(lowConfidence.length) });
             const grouped = this.groupByType(lowConfidence);
             for (const [type, items] of Object.entries(grouped)) {
-                message += `  • ${type}: ${items.length} occurrence(s)\n`;
+                message += i18n.t('message.sensitiveDataTypeCount', {
+                    type,
+                    count: String(items.length)
+                });
             }
         }
 
         // Show dialog with options
-        const options = [
-            'Mask All Sensitive Data',
-            'Mask High Confidence Only',
-            'Review Each Item',
-            'Continue Without Masking',
-            'Cancel Operation'
-        ];
+        const maskAllSensitiveData = i18n.t('action.maskAllSensitiveData');
+        const maskHighConfidenceOnly = i18n.t('action.maskHighConfidenceOnly');
+        const reviewEachItem = i18n.t('action.reviewEachItem');
+        const continueWithoutMasking = i18n.t('action.continueWithoutMasking');
+        const cancelOperation = i18n.t('action.cancelOperation');
 
         const choice = await vscode.window.showWarningMessage(
             message,
             { modal: true },
-            ...options
+            maskAllSensitiveData,
+            maskHighConfidenceOnly,
+            reviewEachItem,
+            continueWithoutMasking,
+            cancelOperation
         );
 
         switch (choice) {
-            case 'Mask All Sensitive Data':
-                return { content: this.maskContent(content, matches), masked: true };
+            case maskAllSensitiveData:
+                return { content: this.maskContent(content, matches, showPartial), masked: true };
 
-            case 'Mask High Confidence Only':
-                return { content: this.maskContent(content, highConfidence), masked: true };
+            case maskHighConfidenceOnly:
+                return { content: this.maskContent(content, highConfidence, showPartial), masked: true };
 
-            case 'Review Each Item':
-                return await this.reviewEachItem(content, matches);
+            case reviewEachItem:
+                return await this.reviewEachItem(content, matches, showPartial);
 
-            case 'Continue Without Masking':
+            case continueWithoutMasking:
+                const yesContinue = i18n.t('action.yesContinue');
+                const noGoBack = i18n.t('action.noGoBack');
                 const confirm = await vscode.window.showWarningMessage(
-                    '⚠️ Are you sure you want to copy potentially sensitive data without masking?',
+                    i18n.t('message.confirmCopySensitiveData'),
                     { modal: true },
-                    'Yes, Continue',
-                    'No, Go Back'
+                    yesContinue,
+                    noGoBack
                 );
-                if (confirm === 'Yes, Continue') {
+                if (confirm === yesContinue) {
                     return { content, masked: false };
                 }
                 return this.promptUserForMasking(matches, content);
 
-            case 'Cancel Operation':
+            case cancelOperation:
             default:
-                throw new Error('Operation cancelled by user');
+                throw new Error(USER_CANCELLED_ERROR_MESSAGE);
         }
     }
 
@@ -337,50 +395,70 @@ export class SensitiveDataDetector {
         }, {} as Record<string, SensitiveDataMatch[]>);
     }
 
-    private async reviewEachItem(content: string, matches: SensitiveDataMatch[]): Promise<{ content: string; masked: boolean }> {
+    private async reviewEachItem(
+        content: string,
+        matches: SensitiveDataMatch[],
+        showPartial: boolean
+    ): Promise<{ content: string; masked: boolean }> {
+        const i18n = I18nManager.getInstance();
         let resultContent = content;
         let anyMasked = false;
 
         // Sort matches by position (reverse order to not affect positions when replacing)
         const sortedMatches = [...matches].sort((a, b) => {
-            if (a.line !== b.line) return b.line - a.line;
+            if (a.line !== b.line) {
+                return b.line - a.line;
+            }
             return b.column - a.column;
         });
 
+        const maskThis = i18n.t('action.maskThis');
+        const keepOriginal = i18n.t('action.keepOriginal');
+        const maskAllRemaining = i18n.t('action.maskAllRemaining');
+        const cancel = i18n.t('action.cancel');
+
         for (const match of sortedMatches) {
-            const preview = `${match.type} (${match.confidence} confidence)\nLine ${match.line}: ${match.context}\nValue: ${this.maskValue(match.value)}`;
+            const preview = i18n.t('message.reviewSensitiveItem', {
+                type: match.type,
+                confidence: i18n.t(`confidence.${match.confidence}`),
+                line: String(match.line),
+                context: match.context ?? '',
+                value: this.maskValue(match.value, showPartial)
+            });
 
             const choice = await vscode.window.showInformationMessage(
                 preview,
                 { modal: true },
-                'Mask This',
-                'Keep Original',
-                'Mask All Remaining',
-                'Cancel'
+                maskThis,
+                keepOriginal,
+                maskAllRemaining,
+                cancel
             );
 
-            if (choice === 'Mask This') {
-                resultContent = resultContent.replace(match.value, this.maskValue(match.value));
+            if (choice === maskThis) {
+                resultContent = resultContent.replace(match.value, this.maskValue(match.value, showPartial));
                 anyMasked = true;
-            } else if (choice === 'Mask All Remaining') {
+            } else if (choice === maskAllRemaining) {
                 const remaining = sortedMatches.slice(sortedMatches.indexOf(match));
-                resultContent = this.maskContent(resultContent, remaining);
+                resultContent = this.maskContent(resultContent, remaining, showPartial);
                 anyMasked = true;
                 break;
-            } else if (choice === 'Cancel') {
-                throw new Error('Operation cancelled by user');
+            } else if (choice === cancel) {
+                throw new Error(USER_CANCELLED_ERROR_MESSAGE);
             }
         }
 
         return { content: resultContent, masked: anyMasked };
     }
 
-    private maskContent(content: string, matches: SensitiveDataMatch[]): string {
+    private maskContent(content: string, matches: SensitiveDataMatch[], showPartial: boolean): string {
         let result = content;
 
         // Sort matches by position (reverse order)
         const sortedMatches = [...matches].sort((a, b) => {
-            if (a.line !== b.line) return b.line - a.line;
+            if (a.line !== b.line) {
+                return b.line - a.line;
+            }
             return b.column - a.column;
         });
 
@@ -389,7 +467,7 @@ export class SensitiveDataDetector {
 
         for (const match of sortedMatches) {
             if (!replacedValues.has(match.value)) {
-                const masked = this.maskValue(match.value);
+                const masked = this.maskValue(match.value, showPartial);
                 result = result.split(match.value).join(masked);
                 replacedValues.add(match.value);
             }

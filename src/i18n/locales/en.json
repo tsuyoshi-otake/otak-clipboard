@@ -1,0 +1,63 @@
+{
+  "extension.description": "Copy files, folders, and editor tabs to the clipboard as markdown for AI-assisted development workflows.",
+
+  "command.copyCurrentTab": "Copy Current Tab",
+  "command.copyAllOpenedTabs": "Copy All Opened Tabs",
+  "command.copyFile": "Copy File",
+  "command.copyFolder": "Copy Folder Contents",
+  "command.copyFolderRecursive": "Copy All Folder Contents",
+
+  "config.useGitignore": "Consider `.gitignore` settings and exclude matching files from clipboard copy.",
+  "config.maxCharacters": "Maximum number of characters allowed in a single copy operation.",
+  "config.maxFiles": "Maximum number of files allowed in a single copy operation.",
+  "config.excludeDirectories": "List of directory names to always exclude from copying.",
+  "config.knownTextExtensions": "List of file extensions to always treat as text files.",
+  "config.knownBinaryExtensions": "List of file extensions to always treat as binary files.",
+  "config.binaryDetectionRules": "Rules for binary file detection: nullByteCheck (check for null bytes), controlCharRatio (maximum ratio of control characters), controlCharCheck (enable control character checking).",
+  "config.detectSensitiveData": "Enable detection of sensitive data like API keys, tokens, and passwords. When detected, you'll be prompted to mask the sensitive information.",
+  "config.sensitiveDataPatterns": "Custom patterns for detecting sensitive data. Each pattern should have a name, regex pattern, and confidence level.",
+  "config.maskShowPartial": "When masking sensitive data, show the first and last few characters instead of masking completely.",
+
+  "label.tab": "tab",
+  "label.tabs": "tabs",
+  "label.file": "file",
+  "label.files": "files",
+
+  "confidence.high": "high confidence",
+  "confidence.medium": "medium confidence",
+  "confidence.low": "low confidence",
+
+  "action.maskAllSensitiveData": "Mask All Sensitive Data",
+  "action.maskHighConfidenceOnly": "Mask High Confidence Only",
+  "action.reviewEachItem": "Review Each Item",
+  "action.continueWithoutMasking": "Continue Without Masking",
+  "action.cancelOperation": "Cancel Operation",
+  "action.yesContinue": "Yes, Continue",
+  "action.noGoBack": "No, Go Back",
+  "action.maskThis": "Mask This",
+  "action.keepOriginal": "Keep Original",
+  "action.maskAllRemaining": "Mask All Remaining",
+  "action.cancel": "Cancel",
+
+  "message.copied": "Copied {count} {itemLabel}: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": ", and {count} more",
+  "message.maskedStatus": " (sensitive data masked)",
+  "message.sensitiveDataDetected": "⚠️ Detected {count} potential sensitive data items:\n\n",
+  "message.highConfidenceItems": "🔴 High confidence ({count} items):\n",
+  "message.mediumConfidenceItems": "\n🟡 Medium confidence ({count} items):\n",
+  "message.lowConfidenceItems": "\n⚪ Low confidence ({count} items):\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count} occurrence(s)\n",
+  "message.confirmCopySensitiveData": "⚠️ Are you sure you want to copy potentially sensitive data without masking?",
+  "message.reviewSensitiveItem": "{type} ({confidence})\nLine {line}: {context}\nValue: {value}",
+
+  "warning.fileExcludedByGitignore": "Selected file is excluded by .gitignore",
+  "warning.noFilesFound": "No files found to copy.",
+
+  "error.noActiveEditor": "No active editor found.",
+  "error.noOpenEditors": "No open editors found.",
+  "error.contentTooLarge": "Content is too large. Maximum size is approximately {limit} characters.\nPlease reduce the selection and try again.",
+  "error.tooManyFiles": "Too many files selected. Maximum limit is {limit} files.\nPlease reduce the selection and try again.",
+  "error.readingDirectory": "Error reading directory: {message}",
+  "error.commandFailed": "otak-clipboard failed: {message}",
+  "error.operationCancelled": "Operation cancelled by user"
+}

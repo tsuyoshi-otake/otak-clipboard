@@ -1,9 +1,12 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { GitignoreUtils } from './GitignoreUtils';
+import { ContentBudget, LimitExceededError } from './LimitChecker';
+import { I18nManager } from '../i18n/I18nManager';
 
 export interface FileInfo {
     path: string;
+    uri?: vscode.Uri;
     content?: string;
     isDirectory?: boolean;
     isEmpty?: boolean;
@@ -25,8 +28,8 @@ const MAGIC_NUMBERS = [
 export class FileUtils {
     private readonly gitignoreUtils: GitignoreUtils;
 
-    constructor() {
-        this.gitignoreUtils = new GitignoreUtils();
+    constructor(gitignoreUtils: GitignoreUtils = new GitignoreUtils()) {
+        this.gitignoreUtils = gitignoreUtils;
     }
 
     /**
@@ -53,28 +56,23 @@ export class FileUtils {
     /**
      * Check if a file is binary
      */
-    private async isBinaryFile(uri: vscode.Uri): Promise<boolean> {
+    private isBinaryContent(uri: vscode.Uri, fileContent: Uint8Array): boolean {
         try {
-            // First check if it's a known text file extension
             const config = this.getConfig();
             const ext = path.extname(uri.fsPath).slice(1).toLowerCase();
-            
+
             if (config.textExtensions.has(ext)) {
                 return false;
             }
 
-            // Check for obvious binary extensions
             if (config.binaryExtensions.has(ext)) {
                 return true;
             }
 
-            // Read the file header
-            const fileContent = await vscode.workspace.fs.readFile(uri);
             if (fileContent.length === 0) {
                 return false;
             }
 
-            // Check magic numbers
             for (const magic of MAGIC_NUMBERS) {
                 if (fileContent.length >= magic.bytes.length) {
                     let match = true;
@@ -100,11 +98,15 @@ export class FileUtils {
             }
 
             if (rules.controlCharCheck) {
-                const controlChars = fileContent.filter(byte => 
-                    (byte < 32 && ![9, 10, 13].includes(byte)) || // Exclude TAB, LF, CR
-                    (byte >= 0x7F && byte <= 0x9F)               // Extended ASCII control chars
-                );
-                const controlCharRatio = controlChars.length / fileContent.length;
+                let controlChars = 0;
+                for (const byte of fileContent) {
+                    if ((byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) ||
+                        (byte >= 0x7F && byte <= 0x9F)) {
+                        controlChars++;
+                    }
+                }
+
+                const controlCharRatio = controlChars / fileContent.length;
                 if (controlCharRatio > rules.controlCharRatio) {
                     return true;
                 }
@@ -121,21 +123,52 @@ export class FileUtils {
      * Read the contents of a single file
      */
     async readFile(uri: vscode.Uri): Promise<string> {
-        const document = await vscode.workspace.openTextDocument(uri);
-        return document.getText();
+        const file = await this.readSingleFile(uri);
+        return file.content ?? '';
+    }
+
+    async readSingleFile(uri: vscode.Uri, budget?: ContentBudget): Promise<FileInfo> {
+        budget?.addFile();
+
+        const bytes = await this.readFileBytes(uri, budget);
+        const isBinary = this.isBinaryContent(uri, bytes);
+
+        if (isBinary) {
+            return {
+                path: uri.fsPath,
+                uri,
+                isBinary: true
+            };
+        }
+
+        const content = new TextDecoder().decode(bytes);
+        budget?.addContent(content);
+
+        return {
+            path: uri.fsPath,
+            uri,
+            content,
+            isBinary: false
+        };
     }
 
     /**
      * Read files from a directory
      */
-    async readFilesInDirectory(uri: vscode.Uri, recursive: boolean): Promise<FileInfo[]> {
+    async readFilesInDirectory(uri: vscode.Uri, recursive: boolean, budget?: ContentBudget): Promise<FileInfo[]> {
         const results: FileInfo[] = [];
         const useGitignore = vscode.workspace.getConfiguration('otakClipboard').get('useGitignore', true);
-        
+
         try {
-            await this.processDirectory(uri, recursive, results, useGitignore);
+            await this.processDirectory(uri, recursive, results, useGitignore, budget);
         } catch (error) {
-            vscode.window.showErrorMessage(`Error reading directory: ${error}`);
+            if (error instanceof LimitExceededError) {
+                throw error;
+            }
+            const message = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(
+                I18nManager.getInstance().t('error.readingDirectory', { message })
+            );
         }
 
         return results;
@@ -148,36 +181,36 @@ export class FileUtils {
         uri: vscode.Uri,
         recursive: boolean,
         results: FileInfo[],
-        useGitignore: boolean
+        useGitignore: boolean,
+        budget?: ContentBudget
     ): Promise<void> {
         const entries = await vscode.workspace.fs.readDirectory(uri);
 
-        // Record the directory itself
+        budget?.addFile();
         results.push({
             path: uri.fsPath,
+            uri,
             isDirectory: true,
             isEmpty: entries.length === 0
         });
 
+        const config = this.getConfig();
         for (const [name, type] of entries) {
-            const fullPath = path.join(uri.fsPath, name);
-            const fileUri = vscode.Uri.file(fullPath);
+            const fileUri = vscode.Uri.joinPath(uri, name);
 
-            // Check excluded directories
-            const config = this.getConfig();
             if (type === vscode.FileType.Directory && config.excludeDirectories.has(name)) {
                 continue;
             }
 
-            // Process directories
             if (type === vscode.FileType.Directory) {
                 if (recursive) {
-                    await this.processDirectory(fileUri, recursive, results, useGitignore);
+                    await this.processDirectory(fileUri, recursive, results, useGitignore, budget);
                 } else {
-                    // Record directory even in non-recursive mode
                     const dirEntries = await vscode.workspace.fs.readDirectory(fileUri);
+                    budget?.addFile();
                     results.push({
-                        path: fullPath,
+                        path: fileUri.fsPath,
+                        uri: fileUri,
                         isDirectory: true,
                         isEmpty: dirEntries.length === 0
                     });
@@ -185,35 +218,31 @@ export class FileUtils {
                 continue;
             }
 
-            // Process files
             if (type === vscode.FileType.File) {
-                // Check .gitignore
                 if (useGitignore && await this.gitignoreUtils.isIgnored(fileUri)) {
                     continue;
                 }
 
-                const isBinary = await this.isBinaryFile(fileUri);
-                if (isBinary) {
-                    // For binary files, only record the path
-                    results.push({
-                        path: fullPath,
-                        isBinary: true
-                    });
-                    continue;
-                }
-
                 try {
-                    const content = await this.readFile(fileUri);
-                    results.push({
-                        path: fullPath,
-                        content: content,
-                        isBinary: false
-                    });
+                    results.push(await this.readSingleFile(fileUri, budget));
                 } catch (error) {
-                    // Skip unreadable files
+                    if (error instanceof LimitExceededError) {
+                        throw error;
+                    }
                     continue;
                 }
             }
         }
+    }
+
+    private async readFileBytes(uri: vscode.Uri, budget?: ContentBudget): Promise<Uint8Array> {
+        const stat = await vscode.workspace.fs.stat(uri);
+        const maxSafeBytes = (budget?.limits.maxCharacters ?? 400000) * 4;
+
+        if (stat.size > maxSafeBytes) {
+            throw new LimitExceededError('characters', stat.size, budget?.limits.maxCharacters ?? 400000);
+        }
+
+        return vscode.workspace.fs.readFile(uri);
     }
 }

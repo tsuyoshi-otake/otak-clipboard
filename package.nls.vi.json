@@ -1,0 +1,18 @@
+{
+  "command.copyAllOpenedTabs": "Sao chép tất cả thẻ đang mở",
+  "command.copyCurrentTab": "Sao chép thẻ hiện tại",
+  "command.copyFile": "Sao chép tệp",
+  "command.copyFolder": "Sao chép nội dung thư mục",
+  "command.copyFolderRecursive": "Sao chép toàn bộ nội dung thư mục",
+  "config.binaryDetectionRules": "Quy tắc phát hiện tệp nhị phân: nullByteCheck (kiểm tra byte null), controlCharRatio (tỷ lệ ký tự điều khiển tối đa), controlCharCheck (bật kiểm tra ký tự điều khiển).",
+  "config.detectSensitiveData": "Bật phát hiện dữ liệu nhạy cảm như API key, token và mật khẩu. Khi phát hiện, tiện ích sẽ hỏi bạn có muốn che dữ liệu nhạy cảm hay không.",
+  "config.excludeDirectories": "Danh sách tên thư mục luôn bị loại trừ khi sao chép.",
+  "config.knownBinaryExtensions": "Danh sách phần mở rộng tệp luôn được xem là tệp nhị phân.",
+  "config.knownTextExtensions": "Danh sách phần mở rộng tệp luôn được xem là tệp văn bản.",
+  "config.maskShowPartial": "Khi che dữ liệu nhạy cảm, hiển thị vài ký tự đầu và cuối thay vì che toàn bộ.",
+  "config.maxCharacters": "Số ký tự tối đa được phép trong một thao tác sao chép.",
+  "config.maxFiles": "Số tệp tối đa được phép trong một thao tác sao chép.",
+  "config.sensitiveDataPatterns": "Mẫu tùy chỉnh để phát hiện dữ liệu nhạy cảm. Mỗi mẫu cần có tên, biểu thức chính quy và mức độ tin cậy.",
+  "config.useGitignore": "Áp dụng thiết lập `.gitignore` và loại trừ các tệp khớp khỏi thao tác sao chép vào bảng tạm.",
+  "extension.description": "Sao chép tệp, thư mục và thẻ trình soạn thảo vào bảng tạm dưới dạng Markdown cho quy trình phát triển có AI hỗ trợ."
+}

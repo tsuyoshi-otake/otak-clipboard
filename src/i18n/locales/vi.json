@@ -1,0 +1,63 @@
+{
+  "extension.description": "Sao chép tệp, thư mục và thẻ trình soạn thảo vào bảng tạm dưới dạng Markdown cho quy trình phát triển có AI hỗ trợ.",
+
+  "command.copyCurrentTab": "Sao chép thẻ hiện tại",
+  "command.copyAllOpenedTabs": "Sao chép tất cả thẻ đang mở",
+  "command.copyFile": "Sao chép tệp",
+  "command.copyFolder": "Sao chép nội dung thư mục",
+  "command.copyFolderRecursive": "Sao chép toàn bộ nội dung thư mục",
+
+  "config.useGitignore": "Áp dụng thiết lập `.gitignore` và loại trừ các tệp khớp khỏi thao tác sao chép vào bảng tạm.",
+  "config.maxCharacters": "Số ký tự tối đa được phép trong một thao tác sao chép.",
+  "config.maxFiles": "Số tệp tối đa được phép trong một thao tác sao chép.",
+  "config.excludeDirectories": "Danh sách tên thư mục luôn bị loại trừ khi sao chép.",
+  "config.knownTextExtensions": "Danh sách phần mở rộng tệp luôn được xem là tệp văn bản.",
+  "config.knownBinaryExtensions": "Danh sách phần mở rộng tệp luôn được xem là tệp nhị phân.",
+  "config.binaryDetectionRules": "Quy tắc phát hiện tệp nhị phân: nullByteCheck (kiểm tra byte null), controlCharRatio (tỷ lệ ký tự điều khiển tối đa), controlCharCheck (bật kiểm tra ký tự điều khiển).",
+  "config.detectSensitiveData": "Bật phát hiện dữ liệu nhạy cảm như API key, token và mật khẩu. Khi phát hiện, tiện ích sẽ hỏi bạn có muốn che dữ liệu nhạy cảm hay không.",
+  "config.sensitiveDataPatterns": "Mẫu tùy chỉnh để phát hiện dữ liệu nhạy cảm. Mỗi mẫu cần có tên, biểu thức chính quy và mức độ tin cậy.",
+  "config.maskShowPartial": "Khi che dữ liệu nhạy cảm, hiển thị vài ký tự đầu và cuối thay vì che toàn bộ.",
+
+  "label.tab": "thẻ",
+  "label.tabs": "thẻ",
+  "label.file": "tệp",
+  "label.files": "tệp",
+
+  "confidence.high": "độ tin cậy cao",
+  "confidence.medium": "độ tin cậy trung bình",
+  "confidence.low": "độ tin cậy thấp",
+
+  "action.maskAllSensitiveData": "Che tất cả dữ liệu nhạy cảm",
+  "action.maskHighConfidenceOnly": "Chỉ che mục có độ tin cậy cao",
+  "action.reviewEachItem": "Xem lại từng mục",
+  "action.continueWithoutMasking": "Tiếp tục không che",
+  "action.cancelOperation": "Hủy thao tác",
+  "action.yesContinue": "Có, tiếp tục",
+  "action.noGoBack": "Không, quay lại",
+  "action.maskThis": "Che mục này",
+  "action.keepOriginal": "Giữ nguyên",
+  "action.maskAllRemaining": "Che tất cả mục còn lại",
+  "action.cancel": "Hủy",
+
+  "message.copied": "Đã sao chép {count} {itemLabel}: {paths}{suffix}{maskedStatus}",
+  "message.remainingCount": ", và {count} mục khác",
+  "message.maskedStatus": " (dữ liệu nhạy cảm đã được che)",
+  "message.sensitiveDataDetected": "⚠️ Đã phát hiện {count} mục có thể là dữ liệu nhạy cảm:\n\n",
+  "message.highConfidenceItems": "🔴 Độ tin cậy cao ({count} mục):\n",
+  "message.mediumConfidenceItems": "\n🟡 Độ tin cậy trung bình ({count} mục):\n",
+  "message.lowConfidenceItems": "\n⚪ Độ tin cậy thấp ({count} mục):\n",
+  "message.sensitiveDataTypeCount": "  • {type}: {count} lần xuất hiện\n",
+  "message.confirmCopySensitiveData": "⚠️ Bạn có chắc muốn sao chép dữ liệu có thể nhạy cảm mà không che không?",
+  "message.reviewSensitiveItem": "{type} ({confidence})\nDòng {line}: {context}\nGiá trị: {value}",
+
+  "warning.fileExcludedByGitignore": "Tệp đã chọn bị loại trừ bởi .gitignore",
+  "warning.noFilesFound": "Không tìm thấy tệp để sao chép.",
+
+  "error.noActiveEditor": "Không tìm thấy trình soạn thảo đang hoạt động.",
+  "error.noOpenEditors": "Không tìm thấy trình soạn thảo đang mở.",
+  "error.contentTooLarge": "Nội dung quá lớn. Kích thước tối đa khoảng {limit} ký tự.\nVui lòng giảm vùng chọn rồi thử lại.",
+  "error.tooManyFiles": "Đã chọn quá nhiều tệp. Giới hạn tối đa là {limit} tệp.\nVui lòng giảm vùng chọn rồi thử lại.",
+  "error.readingDirectory": "Lỗi khi đọc thư mục: {message}",
+  "error.commandFailed": "otak-clipboard thất bại: {message}",
+  "error.operationCancelled": "Người dùng đã hủy thao tác"
+}
